@@ -46,6 +46,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri The {@link URI} pointing to the skin texture.
      * @return A player head with the specified texture.
@@ -56,6 +57,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri          The {@link URI} pointing to the skin texture.
      * @param display_name The display name of the item (supports MiniMessage).
@@ -67,6 +69,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri          The {@link URI} pointing to the skin texture.
      * @param display_name The display name of the item (supports MiniMessage).
@@ -79,6 +82,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url The {@link URL} pointing to the skin texture.
      * @return A player head with the specified texture.
@@ -89,6 +93,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url          The {@link URL} pointing to the skin texture.
      * @param display_name The display name of the item (supports MiniMessage).
@@ -100,6 +105,7 @@ public class CustomHeadsAPI {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url          The {@link URL} pointing to the skin texture.
      * @param display_name The display name of the item (supports MiniMessage).
