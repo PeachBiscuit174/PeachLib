@@ -21,23 +21,23 @@ Eine PaperMC-Library;
 ## 🚀 Installation
 
 Füge die Library über **JitPack** zu deinem Projekt hinzu.
+[![](https://jitpack.io/v/PeachBiscuit174/PeachPaperLib.svg)](https://jitpack.io/#PeachBiscuit174/PeachPaperLib)
 
 ### Maven (`pom.xml`)
 ```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>[https://jitpack.io](https://jitpack.io)</url>
-    </repository>
-</repositories>
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 
-Damit die Library korrekt geladen wird, füge sie als Dependency hinzu
+	<dependency>
+	    <groupId>com.github.PeachBiscuit174</groupId>
+	    <artifactId>PeachPaperLib</artifactId>
+	    <version>v1.0.0</version>
+	</dependency>
 
-<dependency>
-    <groupId>com.github.PeachBiscuit174</groupId>
-    <artifactId>PeachPaperLib</artifactId>
-    <version>v1.0.0</version> <scope>provided</scope>
-</dependency>
 ```
 
 > [!IMPORTANT]
@@ -52,7 +52,7 @@ Die Nutzung erfolgt zentral über die Klasse `API`.
 **Beispiel:**
 ```java
 // Erstellt einen ItemStack eines Kopfes via Base64-String
-ItemStack head = API.get().getCustomManager().getCustomHead("eyJ0ZXh0dXJlcyI6...");
+ItemStack head = API.getCustomThingsManager().getCustomHeadUtils().getCustomHead("eyJ0ZXh0dXJlcyI6...");
 ```
 
 ---
