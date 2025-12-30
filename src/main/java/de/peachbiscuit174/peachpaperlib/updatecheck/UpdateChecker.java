@@ -1,4 +1,4 @@
-package de.peachbiscuit174.peachpaperlib.UpdateCheck;
+package de.peachbiscuit174.peachpaperlib.updatecheck;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -63,11 +63,8 @@ public class UpdateChecker implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        // Wir prüfen OP-Rechte
         if (!player.isOp()) return;
 
-        // Wir warten 2 Sekunden (40 Ticks), damit die Nachricht nicht im
-        // restlichen Join-Spam untergeht und der Client sicher bereit ist.
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && isUpdateAvailable()) {
                 player.sendMessage(MiniMessage.miniMessage().deserialize(

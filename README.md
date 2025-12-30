@@ -51,11 +51,11 @@ Usage is centralized via the `API` class.
 **Example:**
 ```java
 // Creates an ItemStack of a head via Base64 string
-ItemStack head = API.getCustomThingsManager().getCustomHeadUtils().getCustomHead("eyJ0ZXh0dXJlcyI6...");
+ItemStack head = API.getItemsManager().getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...");
 ```
 or
 ```java
-CustomHeadsAPI customHeadsAPI = API.getCustomThingsManager().getCustomHeadUtils();
+CustomHeadsAPI customHeadsAPI = API.getItemsManager().getCustomHeadsAPI();
 ItemStack head = customHeadsAPI.getCustomHead("eyJ0ZXh0dXJlcyI6...");
 ```
 
@@ -140,12 +140,12 @@ Die Nutzung erfolgt zentral über die Klasse `API`.
 
 **Beispiel:**
 ```java
-// Erstellt einen ItemStack eines Kopfes mit einem Base64 String
-ItemStack head = API.getCustomThingsManager().getCustomHeadUtils().getCustomHead("eyJ0ZXh0dXJlcyI6...");
+// Erstellt einen ItemStack eines Kopfes mithilfe eines Base64 String
+ItemStack head = API.getItemsManager().getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...");
 ```
 oder
 ```java
-CustomHeadsAPI customHeadsAPI = API.getCustomThingsManager().getCustomHeadUtils();
+CustomHeadsAPI customHeadsAPI = API.getItemsManager().getCustomHeadsAPI();
 ItemStack head = customHeadsAPI.getCustomHead("eyJ0ZXh0dXJlcyI6...");
 ```
 

@@ -1,7 +1,7 @@
-package de.peachbiscuit174.peachpaperlib.api.CustomThings;
+package de.peachbiscuit174.peachpaperlib.api.items;
 
-import de.peachbiscuit174.peachpaperlib.custom.CustomHeads;
-import de.peachbiscuit174.peachpaperlib.custom.ItemLore;
+import de.peachbiscuit174.peachpaperlib.items.CustomHeads;
+import de.peachbiscuit174.peachpaperlib.items.ItemLore;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 

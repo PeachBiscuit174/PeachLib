@@ -1,4 +1,4 @@
-package de.peachbiscuit174.peachpaperlib.custom;
+package de.peachbiscuit174.peachpaperlib.items;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;

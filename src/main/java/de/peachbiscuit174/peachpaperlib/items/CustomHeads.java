@@ -1,4 +1,4 @@
-package de.peachbiscuit174.peachpaperlib.custom;
+package de.peachbiscuit174.peachpaperlib.items;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
@@ -84,6 +84,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri The {@link URI} pointing to the skin texture.
      * @return A player head with the specified texture.
@@ -122,6 +123,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri The {@link URI} pointing to the skin texture.
      * @param display_name   The display name of the item (supports MiniMessage).
@@ -135,6 +137,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URI.
+     * The URL must point to the Minecraft texture server.
      *
      * @param uri The {@link URI} pointing to the skin texture.
      * @param display_name   The display name of the item (supports MiniMessage).
@@ -149,6 +152,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url The {@link URL} pointing to the skin texture.
      * @return A player head with the specified texture.
@@ -177,6 +181,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url The {@link URL} pointing to the skin texture.
      * @param display_name   The display name of the item (supports MiniMessage).
@@ -190,6 +195,7 @@ public class CustomHeads {
 
     /**
      * Creates a player head from a texture URL.
+     * The URL must point to the Minecraft texture server.
      *
      * @param url The {@link URL} pointing to the skin texture.
      * @param display_name   The display name of the item (supports MiniMessage).
@@ -204,6 +210,7 @@ public class CustomHeads {
 
     /**
      * Internal helper to apply display name and lore to an item.
+     * The URL must point to the Minecraft texture server.
      *
      * @param item         The item to modify.
      * @param display_name The new display name (can be null).

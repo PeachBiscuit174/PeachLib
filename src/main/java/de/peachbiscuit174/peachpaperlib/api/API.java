@@ -1,12 +1,12 @@
 package de.peachbiscuit174.peachpaperlib.api;
 
-import de.peachbiscuit174.peachpaperlib.api.Managers.CustomThingsManager;
+import de.peachbiscuit174.peachpaperlib.api.managers.ItemsManager;
 
 public class API {
-    private static final CustomThingsManager customThingsManager = new CustomThingsManager();
+    private static final ItemsManager itemsManager = new ItemsManager();
 
-    public static CustomThingsManager getCustomThingsManager() {
-        return customThingsManager;
+    public static ItemsManager getItemsManager() {
+        return itemsManager;
     }
 
 
