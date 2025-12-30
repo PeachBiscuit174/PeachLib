@@ -81,6 +81,33 @@ Even though this is a hobby project, your opinion matters!
 
 This project is licensed under the MIT License – see the [LICENSE file](https://github.com/PeachBiscuit174/PeachPaperLib/blob/master/LICENSE) for details.
 
+---
+
+## ❤️ Credits & Contributions
+
+We are grateful for any help to make **PeachPaperLib** better! Whether it's a new feature, a bug report, or a great idea – every contribution is welcome.
+
+### 💡 Idea Contributors
+*Special thanks to those who helped shape the library with their suggestions.*
+| Contributor | Reference |
+| :--- | :--- |
+| *None yet* | - |
+
+### 🛠️ Code Contributors
+*People who improved the codebase via Pull Requests.*
+| Contributor | PR ID |
+| :--- | :--- |
+| *None yet* | - |
+
+### 🐛 Bug Hunters
+*Thanks for helping us find and squash bugs!*
+| Reporter | Issue ID |
+| :--- | :--- |
+| *None yet* | - |
+
+---
+**Want to help?** Feel free to open an Issue or a Pull Request!
+
 <br>
 
 ---
@@ -170,3 +197,30 @@ Obwohl dies ein Freizeitprojekt ist, ist deine Meinung wichtig!
 ## 📄 Lizenz
 
 Dieses Projekt ist unter der MIT-Lizenz lizenziert – siehe die [LICENSE Datei](https://github.com/PeachBiscuit174/PeachPaperLib/blob/master/LICENSE) für Details.
+
+---
+
+## ❤️ Credits & Mitwirkende
+
+Wir sind dankbar für jede Hilfe, die dazu beiträgt, die **PeachPaperLib** zu verbessern! Egal ob es eine neue Funktion, ein Fehlerbericht oder eine kreative Idee ist – jeder Beitrag ist willkommen.
+
+### 💡 Ideen & Vorschläge
+*Ein besonderer Dank geht an alle, die die Library durch ihre kreativen Ansätze mitgestalten.*
+| Mitwirkende | Referenz |
+| :--- | :--- |
+| *Noch keine Einträge* | - |
+
+### 🛠️ Code-Beiträge
+*Entwickler, die den Code direkt über Pull Requests verbessert haben.*
+| Mitwirkende | PR-ID |
+| :--- | :--- |
+| *Noch keine Einträge* | - |
+
+### 🐛 Bug-Jäger
+*Vielen Dank an alle, die uns helfen, Fehler zu finden und zu beheben!*
+| Reporter | Issue-ID |
+| :--- | :--- |
+| *Noch keine Einträge* | - |
+
+---
+**Möchtest du helfen?** Du kannst jederzeit gerne ein Issue eröffnen oder einen Pull Request erstellen!
