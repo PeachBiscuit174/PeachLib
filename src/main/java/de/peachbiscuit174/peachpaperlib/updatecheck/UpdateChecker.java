@@ -19,6 +19,7 @@ public class UpdateChecker implements Listener {
     private final JavaPlugin plugin;
     private final String githubRepo = "PeachBiscuit174/PeachPaperLib";
     private String latestVersion;
+    private boolean isUpdateAvailable = false;
 
     public UpdateChecker(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -42,10 +43,11 @@ public class UpdateChecker implements Listener {
 
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                this.latestVersion = json.get("tag_name").getAsString().replace("v", "");
+                this.latestVersion = json.get("tag_name").getAsString().replace("v", "").trim();
 
                 if (isUpdateAvailable()) {
                     plugin.getLogger().warning("A new version of PeachPaperLib is available: v" + latestVersion);
+                    isUpdateAvailable = true;
                 }
             }
         } catch (Exception e) {
@@ -55,7 +57,7 @@ public class UpdateChecker implements Listener {
 
     private boolean isUpdateAvailable() {
         if (latestVersion == null) return false;
-        String current = plugin.getPluginMeta().getVersion();
+        String current = plugin.getPluginMeta().getVersion().trim();
         return !current.equalsIgnoreCase(latestVersion);
     }
 
@@ -66,7 +68,7 @@ public class UpdateChecker implements Listener {
         if (!player.isOp()) return;
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline() && isUpdateAvailable()) {
+            if (player.isOnline() && isUpdateAvailable) {
                 player.sendMessage(MiniMessage.miniMessage().deserialize(
                         "<newline><gold>🍑 PeachPaperLib</gold> <gray>»</gray> <yellow>New update available!</yellow><newline>" +
                                 "<gray>Current: <red>v" + plugin.getPluginMeta().getVersion() + "</red> | Latest: <green>v" + latestVersion + "</green></gray><newline>" +

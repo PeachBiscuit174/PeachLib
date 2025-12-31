@@ -1,8 +1,11 @@
 package de.peachbiscuit174.peachpaperlib.items;
 
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.CustomModelData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.apache.http.annotation.Experimental;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -25,6 +28,8 @@ public class ItemBuilder {
 
     private final ItemStack itemStack;
     private final ItemMeta itemMeta;
+    private int customModelDataLegacy = -1;
+    private float customModelData = -1;
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     public ItemBuilder(@NotNull Material material) {
@@ -37,6 +42,19 @@ public class ItemBuilder {
         this.itemMeta = this.itemStack.getItemMeta();
     }
 
+    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat) {
+        this.itemStack = itemStack.clone();
+        this.itemMeta = this.itemStack.getItemMeta();
+        if (customModelDataint == -1 && customModelDatafloat != -1) {
+            this.customModelData = customModelDatafloat;
+        } else if (customModelDataint != -1 && customModelDatafloat == -1) {
+            this.customModelDataLegacy = customModelDataint;
+        } else if (customModelDataint != -1 && customModelDatafloat != -1) {
+            this.customModelData = customModelDatafloat;
+        }
+
+    }
+
     /**
      * Creates a deep copy of the current ItemBuilder state.
      * <p>
@@ -47,7 +65,11 @@ public class ItemBuilder {
      * @return A new ItemBuilder instance with identical data.
      */
     public @NotNull ItemBuilder copy() {
-        return new ItemBuilder(this.build());
+        if (customModelData != -1 || customModelDataLegacy != -1) {
+            return new ItemBuilder(this.build(), customModelDataLegacy, customModelData);
+        } else {
+            return new ItemBuilder(this.build());
+        }
     }
 
     /**
@@ -149,12 +171,34 @@ public class ItemBuilder {
     /**
      * Applies a custom model data ID to the item if it does not already have one.
      * <p>
-     * This method utilizes the deprecated setCustomModelData method
-     * The int value provided serves as the primary identifier for resource pack overrides.
+     * This method utilizes the modern CustomModelDataComponent
+     * The float value provided serves as the primary identifier for resource pack overrides.
+     * This method should not be used when using the other deprecated setCustomModelData method from this ItemBuilder Instance
      * </p>
      * @param customModelData The numerical ID (int) to be used for the custom model.
      * @return The current ItemBuilder instance.
      */
+    @Experimental
+    public ItemBuilder setCustomModelData(float customModelData) {
+        if (itemStack != null) {
+            if (!itemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
+                itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Applies a custom model data ID to the item if it does not already have one.
+     * <p>
+     * This method utilizes the deprecated setCustomModelData method
+     * The int value provided serves as the primary identifier for resource pack overrides.
+     * This method should not be used when using the other modern setCustomModelData method from this ItemBuilder Instance
+     * </p>
+     * @param customModelData The numerical ID (int) to be used for the custom model.
+     * @return The current ItemBuilder instance.
+     */
+    @Deprecated
     public ItemBuilder setCustomModelData(int customModelData) {
         if (itemMeta != null) {
             if (!itemMeta.hasCustomModelData()) {
@@ -195,7 +239,24 @@ public class ItemBuilder {
      * @return The finished {@link ItemStack}.
      */
     public @NotNull ItemStack build() {
-        itemStack.setItemMeta(itemMeta);
+        if (customModelDataLegacy == -1 && customModelData != -1) {
+            itemStack.setItemMeta(itemMeta);
+            if (!itemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
+                itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
+            }
+        } else if (customModelDataLegacy != -1 && customModelData == -1) {
+            if (itemMeta != null) {
+                if (!itemMeta.hasCustomModelData()) {
+                    itemMeta.setCustomModelData(customModelDataLegacy);
+                }
+            }
+            itemStack.setItemMeta(itemMeta);
+        } else if (customModelDataLegacy != -1 && customModelData != -1) {
+            itemStack.setItemMeta(itemMeta);
+            if (!itemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
+                itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
+            }
+        }
         return itemStack;
     }
 }

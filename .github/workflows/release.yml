@@ -37,7 +37,7 @@ jobs:
           name: "PeachPaperLib v${{ steps.get_version.outputs.VERSION }}"
           files: |
             target/*.jar
-            !target/original-*.jar
+            !target/*-original.jar
           draft: false
           prerelease: false
         env:

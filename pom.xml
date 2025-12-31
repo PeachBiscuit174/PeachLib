@@ -6,7 +6,7 @@
 
     <groupId>de.peachbiscuit174</groupId>
     <artifactId>PeachPaperLib</artifactId>
-    <version>1.0.0-SNAPSHOT3</version>
+    <version>1.0.0-SNAPSHOT4</version>
     <packaging>jar</packaging>
 
     <name>PeachPaperLib</name>
@@ -47,6 +47,12 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>LICENSE</include>
+                </includes>
+                <targetPath>.</targetPath> </resource>
         </resources>
     </build>
 
