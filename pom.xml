@@ -6,7 +6,7 @@
 
     <groupId>de.peachbiscuit174</groupId>
     <artifactId>PeachPaperLib</artifactId>
-    <version>1.0.0-SNAPSHOT4</version>
+    <version>1.0.0-SNAPSHOT5</version>
     <packaging>jar</packaging>
 
     <name>PeachPaperLib</name>
@@ -28,10 +28,20 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.3</version>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>de.peachbiscuit174.peachpaperlib.bstats</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <minimizeJar>true</minimizeJar>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -67,8 +77,13 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>1.21.1-R0.1-SNAPSHOT</version> <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.1.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
