@@ -2,6 +2,7 @@ package de.peachbiscuit174.peachpaperlib;
 
 import de.peachbiscuit174.peachpaperlib.other.HolidayGreetingListener;
 import de.peachbiscuit174.peachpaperlib.updatecheck.UpdateChecker;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +18,10 @@ public final class PeachPaperLib extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         plugin = this;
+
+        int pluginId = 28644;
+        Metrics metrics = new Metrics(this, pluginId);
+
         updateChecker = new UpdateChecker(this);
         updateChecker.bootstrap();
         getServer().getPluginManager().registerEvents(new HolidayGreetingListener(), this);
