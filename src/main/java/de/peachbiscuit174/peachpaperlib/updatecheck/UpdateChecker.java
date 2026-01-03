@@ -14,6 +14,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public class UpdateChecker implements Listener {
 
     private final JavaPlugin plugin;

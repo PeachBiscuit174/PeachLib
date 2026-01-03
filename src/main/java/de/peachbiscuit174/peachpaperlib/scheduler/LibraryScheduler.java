@@ -20,6 +20,8 @@ import java.util.function.Consumer;
  * <li>Centralized sync task to reduce main thread overhead.</li>
  * <li>Safe player interaction wrappers.</li>
  * </ul>
+ * @author peachbiscuit174
+ * @since 1.0.0
  */
 public class LibraryScheduler {
 

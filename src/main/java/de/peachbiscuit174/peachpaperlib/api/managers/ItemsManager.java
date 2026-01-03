@@ -4,6 +4,10 @@ import de.peachbiscuit174.peachpaperlib.api.items.CustomHeadsAPI;
 import de.peachbiscuit174.peachpaperlib.api.items.ItemBuilderAPI;
 import de.peachbiscuit174.peachpaperlib.items.ItemLore;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public class ItemsManager {
 
     private final ItemBuilderAPI itemBuilderAPI = new ItemBuilderAPI();

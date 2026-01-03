@@ -12,6 +12,8 @@ import java.time.LocalDate;
 /**
  * All-in-one class that manages holiday greetings with dynamic placeholders.
  * Handles configuration, date calculation, and automatic year replacement.
+ * @author peachbiscuit174
+ * @since 1.0.0
  */
 public class HolidayGreetingListener implements Listener {
 

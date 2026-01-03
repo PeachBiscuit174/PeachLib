@@ -5,6 +5,10 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public class ItemBuilderAPI {
 
     /**

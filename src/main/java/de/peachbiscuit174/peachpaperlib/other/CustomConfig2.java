@@ -6,6 +6,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public class CustomConfig2 {
     private File file;
     private FileConfiguration config;

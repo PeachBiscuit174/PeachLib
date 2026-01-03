@@ -35,7 +35,7 @@ Add the library to your project via **JitPack**.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachPaperLib</artifactId>
-        <version>v1.0.0-SNAPSHOT6</version>
+        <version>v1.0.0-SNAPSHOT7</version>
     </dependency>
 ```
 
@@ -152,7 +152,7 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachPaperLib</artifactId>
-        <version>v1.0.0-SNAPSHOT6</version>
+        <version>v1.0.0-SNAPSHOT7</version>
     </dependency>
 ```
 

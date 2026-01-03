@@ -8,6 +8,10 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.net.URL;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public class CustomHeadsAPI {
 
     /**

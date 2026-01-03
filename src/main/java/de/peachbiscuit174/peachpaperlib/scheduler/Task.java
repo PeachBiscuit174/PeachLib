@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * }, 0, 1, TimeUnit.SECONDS);
  * * myTask.onCancel(() -> System.out.println("Cleaned up!"));
  * }</pre>
+ * @author peachbiscuit174
+ * @since 1.0.0
  */
 public class Task {
     private final AtomicBoolean cancelled = new AtomicBoolean(false);

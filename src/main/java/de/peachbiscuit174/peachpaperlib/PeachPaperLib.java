@@ -6,6 +6,10 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * @author peachbiscuit174
+ * @since 1.0.0
+ */
 public final class PeachPaperLib extends JavaPlugin {
     private static Plugin plugin;
     private static UpdateChecker updateChecker;

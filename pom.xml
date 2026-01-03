@@ -6,7 +6,7 @@
 
     <groupId>de.peachbiscuit174</groupId>
     <artifactId>PeachPaperLib</artifactId>
-    <version>1.0.0-SNAPSHOT6</version>
+    <version>1.0.0-SNAPSHOT7</version>
     <packaging>jar</packaging>
 
     <name>PeachPaperLib</name>
