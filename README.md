@@ -77,9 +77,11 @@ Even though this is a hobby project, your opinion matters!
 
 ---
 
-## 📄 License
+## 📄 License & Transparency
 
-This project is licensed under the MIT License – see the [LICENSE file](https://github.com/PeachBiscuit174/PeachPaperLib/blob/master/LICENSE) for details.
+License: This project is licensed under the MIT License – see the [LICENSE file](https://github.com/PeachBiscuit174/PeachPaperLib/blob/master/LICENSE) for details.
+
+AI Disclosure: In compliance with transparency best practices (and the EU AI Act guidelines), please be aware that parts of this library's code and documentation have been developed with the assistance of Artificial Intelligence (AI). All AI-generated content has been reviewed, tested, and refined by the human author to ensure quality and functionality.
 
 ---
 
@@ -194,9 +196,11 @@ Obwohl dies ein Freizeitprojekt ist, ist deine Meinung wichtig!
 
 ---
 
-## 📄 Lizenz
+## 📄 Lizenz & Transparenz
 
 Dieses Projekt ist unter der MIT-Lizenz lizenziert – siehe die [LICENSE Datei](https://github.com/PeachBiscuit174/PeachPaperLib/blob/master/LICENSE) für Details.
+
+KI-Offenlegung: Zur Einhaltung von Transparenzstandards (und im Hinblick auf den EU AI Act) weisen wir darauf hin, dass Teile des Codes und der Dokumentation mit Unterstützung von Künstlicher Intelligenz (KI) erstellt wurden. Alle KI-generierten Inhalte wurden durch den menschlichen Autor geprüft, getestet und überarbeitet.
 
 ---
 
