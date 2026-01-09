@@ -29,6 +29,11 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -f pom.xml
 
+      - name: Generate Checksum
+        run: |
+          # Creates a SHA-256 hash and saves only the hash value to checksum.txt
+          sha256sum target/PeachPaperLib-${{ steps.get_version.outputs.VERSION }}.jar | awk '{print $1}' > target/checksum.txt
+
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -37,6 +42,7 @@ jobs:
           name: "PeachPaperLib v${{ steps.get_version.outputs.VERSION }}"
           files: |
             target/PeachPaperLib-${{ steps.get_version.outputs.VERSION }}.jar
+            target/checksum.txt
           draft: false
           prerelease: false
         env:

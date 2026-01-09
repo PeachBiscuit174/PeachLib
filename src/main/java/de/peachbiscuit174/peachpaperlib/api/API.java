@@ -1,5 +1,6 @@
 package de.peachbiscuit174.peachpaperlib.api;
 
+import de.peachbiscuit174.peachpaperlib.api.managers.GUIManager;
 import de.peachbiscuit174.peachpaperlib.api.managers.ItemsManager;
 import de.peachbiscuit174.peachpaperlib.api.managers.PlayerManager;
 import de.peachbiscuit174.peachpaperlib.api.managers.SchedulerManager;
@@ -25,5 +26,11 @@ public class API {
 
     public static PlayerManager getPlayerManager() {
         return playerManager;
+    }
+
+    private static final GUIManager getGUIManager = new GUIManager();
+
+    public static GUIManager getGetGUIManager() {
+        return getGUIManager;
     }
 }

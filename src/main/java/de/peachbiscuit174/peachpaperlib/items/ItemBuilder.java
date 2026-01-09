@@ -2,6 +2,7 @@ package de.peachbiscuit174.peachpaperlib.items;
 
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.CustomModelData;
+import de.peachbiscuit174.peachpaperlib.api.items.ItemTagAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -30,6 +31,7 @@ public class ItemBuilder {
     private final ItemMeta itemMeta;
     private int customModelDataLegacy = -1;
     private float customModelData = -1;
+    private String item_tag;
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     public ItemBuilder(@NotNull Material material) {
@@ -42,7 +44,7 @@ public class ItemBuilder {
         this.itemMeta = this.itemStack.getItemMeta();
     }
 
-    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat) {
+    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag) {
         this.itemStack = itemStack.clone();
         this.itemMeta = this.itemStack.getItemMeta();
         if (customModelDataint == -1 && customModelDatafloat != -1) {
@@ -51,6 +53,10 @@ public class ItemBuilder {
             this.customModelDataLegacy = customModelDataint;
         } else if (customModelDataint != -1 && customModelDatafloat != -1) {
             this.customModelData = customModelDatafloat;
+        }
+
+        if (item_tag != null) {
+            this.item_tag = item_tag;
         }
 
     }
@@ -65,8 +71,8 @@ public class ItemBuilder {
      * @return A new ItemBuilder instance with identical data.
      */
     public @NotNull ItemBuilder copy() {
-        if (customModelData != -1 || customModelDataLegacy != -1) {
-            return new ItemBuilder(this.build(), customModelDataLegacy, customModelData);
+        if (customModelData != -1 || customModelDataLegacy != -1 || item_tag != null) {
+            return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag);
         } else {
             return new ItemBuilder(this.build());
         }
@@ -230,6 +236,23 @@ public class ItemBuilder {
     }
 
     /**
+     * Assigns a specific tag to the item for identification via the {@link ItemTagAPI}.
+     * <p>
+     * If the item does not already possess this tag, it will be applied.
+     * This is useful for filtering or identifying custom items programmatically.
+     * </p>
+     *
+     * @param item_tag The unique string identifier to be assigned as a tag.
+     * Must not be null (enforced by {@link NotNull}).
+     * @return The current {@link ItemBuilder} instance to allow for method chaining (fluent API).
+     * @see ItemTagAPI
+     */
+    public ItemBuilder setItemTag(@NotNull String item_tag) {
+        this.item_tag = item_tag;
+        return this;
+    }
+
+    /**
      * Builds the final ItemStack.
      *
      * @return The finished {@link ItemStack}.
@@ -253,6 +276,17 @@ public class ItemBuilder {
                 itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
             }
         }
+
+        if (item_tag != null) {
+            ItemTag.setItemTag(itemStack, item_tag);
+        }
+
+        return itemStack;
+    }
+
+    private @NotNull ItemStack buildWithoutData() {
+        itemStack.setItemMeta(itemMeta);
+
         return itemStack;
     }
 }
