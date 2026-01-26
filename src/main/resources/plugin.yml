@@ -1,0 +1,6 @@
+name: PeachLib
+version: '1.0.0-SNAPSHOT12'
+main: de.peachbiscuit174.peachlib.PeachLib
+api-version: '1.21.11'
+authors: [ PeachBiscuit174 :D ]
+description: PeachLib (PL)
