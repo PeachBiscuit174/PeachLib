@@ -1,5 +1,5 @@
 name: PeachLib
-version: '1.0.0-SNAPSHOT12'
+version: '1.0.0-SNAPSHOT13'
 main: de.peachbiscuit174.peachlib.PeachLib
 api-version: '1.21.11'
 authors: [ PeachBiscuit174 :D ]
