@@ -2,6 +2,7 @@ package de.peachbiscuit174.peachlib.api.gui;
 
 import de.peachbiscuit174.peachlib.gui.GUIButton;
 import de.peachbiscuit174.peachlib.gui.InventoryGUI;
+import de.peachbiscuit174.peachlib.gui.PaginatedGUI;
 import de.peachbiscuit174.peachlib.items.ItemBuilder;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,17 @@ public class InventoryGUIAPI {
      */
     public InventoryGUI createGUI(int rows, @NotNull String titleMiniMessage) {
         return new InventoryGUI(rows, titleMiniMessage);
+    }
+
+    /**
+     * Creates a new PaginatedGUI instance.
+     *
+     * @param rows              The number of rows for the inventory (2-6).
+     * @param titleMiniMessage The title of the inventory (supports MiniMessage).
+     * @return A new {@link PaginatedGUI} instance.
+     */
+    public PaginatedGUI createPaginatedGUI(int rows, @NotNull String titleMiniMessage) {
+        return new PaginatedGUI(rows, titleMiniMessage);
     }
 
     /**
