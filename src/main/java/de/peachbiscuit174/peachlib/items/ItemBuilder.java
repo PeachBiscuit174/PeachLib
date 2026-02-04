@@ -29,6 +29,7 @@ public class ItemBuilder {
 
     private final ItemStack itemStack;
     private final ItemMeta itemMeta;
+    private int amount = 1;
     private int customModelDataLegacy = -1;
     private float customModelData = -1;
     private String item_tag;
@@ -45,7 +46,7 @@ public class ItemBuilder {
         this.itemMeta = this.itemStack.getItemMeta();
     }
 
-    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list) {
+    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list, int amount) {
         this.itemStack = itemStack.clone();
         this.itemMeta = this.itemStack.getItemMeta().clone();
         if (customModelDataint == -1 && customModelDatafloat != -1) {
@@ -64,6 +65,8 @@ public class ItemBuilder {
             this.item_tag_list = new ArrayList<>(item_tag_list);
         }
 
+        this.amount = amount;
+
     }
 
     /**
@@ -76,7 +79,19 @@ public class ItemBuilder {
      * @return A new ItemBuilder instance with identical data.
      */
     public @NotNull ItemBuilder copy() {
-        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list);
+        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list, amount);
+    }
+
+    /**
+     * Sets the Amount of the Item.
+     * @param amount The Amount of the Item.
+     * @return The current ItemBuilder instance.
+     */
+    public ItemBuilder setAmount(int amount) {
+        if (amount >= 1 && amount <= 64) {
+            this.amount = amount;
+        }
+        return this;
     }
 
     /**
@@ -306,6 +321,10 @@ public class ItemBuilder {
             for (String key : build_item_tag_list) {
                 ItemTag.setItemTag(buildItemStack, key);
             }
+        }
+
+        if (amount >= 1 && amount <= 64) {
+            buildItemStack.setAmount(amount);
         }
 
         return buildItemStack;
