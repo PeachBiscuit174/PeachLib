@@ -61,10 +61,12 @@ public class InventoryGUI implements InventoryHolder {
      *
      * @param slot   The inventory slot (0 to size-1).
      * @param button The {@link GUIButton} to place.
+     * @return The current instance for fluent chaining.
      */
-    public void setButton(int slot, @NotNull GUIButton button) {
+    public InventoryGUI setButton(int slot, @NotNull GUIButton button) {
         buttons.put(slot, button);
         updateSlot(slot);
+        return this;
     }
 
     /**
@@ -76,8 +78,9 @@ public class InventoryGUI implements InventoryHolder {
      * </p>
      *
      * @param slot The slot to refresh.
+     * @return The current instance for fluent chaining.
      */
-    public void updateSlot(int slot) {
+    public InventoryGUI updateSlot(int slot) {
         GUIButton button = buttons.get(slot);
         if (button != null) {
             ItemStack itemStack = button.getItemBuilder().build();
@@ -88,6 +91,7 @@ public class InventoryGUI implements InventoryHolder {
 
             inventory.setItem(slot, itemStack);
         }
+        return this;
     }
 
     /**
@@ -96,9 +100,11 @@ public class InventoryGUI implements InventoryHolder {
      * @param slot    The slot to place the placeholder.
      * @param builder The ItemBuilder for the appearance.
      * @param id      The identification tag.
+     * @return The current instance for fluent chaining.
      */
-    public void setPlaceholder(int slot, @NotNull ItemBuilder builder, @NotNull String id) {
+    public InventoryGUI setPlaceholder(int slot, @NotNull ItemBuilder builder, @NotNull String id) {
         setButton(slot, new GUIButton(builder, id, null));
+        return this;
     }
 
     /**
@@ -106,13 +112,15 @@ public class InventoryGUI implements InventoryHolder {
      *
      * @param builder The appearance of the filler item.
      * @param id      The identification tag for all filler items.
+     * @return The current instance for fluent chaining.
      */
-    public void fillEmptySlots(@NotNull ItemBuilder builder, @NotNull String id) {
+    public InventoryGUI fillEmptySlots(@NotNull ItemBuilder builder, @NotNull String id) {
         for (int i = 0; i < inventory.getSize(); i++) {
             if (inventory.getItem(i) == null) {
                 setPlaceholder(i, builder.copy(), id);
             }
         }
+        return this;
     }
 
     /**

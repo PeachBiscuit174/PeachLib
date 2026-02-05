@@ -1,6 +1,12 @@
 name: PeachLib
-version: '1.0.0-SNAPSHOT13'
+version: '1.0.0-SNAPSHOT14'
 main: de.peachbiscuit174.peachlib.PeachLib
 api-version: '1.21.11'
 authors: [ PeachBiscuit174 :D ]
 description: PeachLib (PL)
+
+commands:
+  peachLibSettings:
+    permission: "peachlib.admin.peachlibsettings.use"
+    permission-message: "You are not allowed to use this Command!"
+    description: "Admin Command"

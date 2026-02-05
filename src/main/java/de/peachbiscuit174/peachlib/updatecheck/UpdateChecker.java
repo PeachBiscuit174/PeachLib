@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.peachbiscuit174.peachlib.PeachLib;
+import de.peachbiscuit174.peachlib.other.ConfigData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -113,6 +114,7 @@ public class UpdateChecker implements Listener {
      * </p>
      */
     private void checkUpdates() {
+        if (!ConfigData.getAutoUpdateStatus()) return;
         try {
             // Build the HTTP request for the GitHub API
             // We use a specific User-Agent to comply with GitHub's API policy

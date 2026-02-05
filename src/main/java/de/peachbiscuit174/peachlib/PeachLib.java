@@ -1,8 +1,8 @@
 package de.peachbiscuit174.peachlib;
 
+import de.peachbiscuit174.peachlib.Commands.PeachLibSettings;
 import de.peachbiscuit174.peachlib.gui.GUIListener;
-import de.peachbiscuit174.peachlib.other.HolidayGreetingListener;
-import de.peachbiscuit174.peachlib.other.ReloadSafetyListener;
+import de.peachbiscuit174.peachlib.other.*;
 import de.peachbiscuit174.peachlib.scheduler.LibraryScheduler;
 import de.peachbiscuit174.peachlib.updatecheck.UpdateChecker;
 import org.bstats.bukkit.Metrics;
@@ -21,6 +21,11 @@ public final class PeachLib extends JavaPlugin {
     private static UpdateChecker updateChecker;
     private static LibraryScheduler scheduler;
     private Metrics metrics;
+    private static CustomConfig2 cfg;
+
+    public static CustomConfig2 getCfg() {
+        return cfg;
+    }
 
     public static LibraryScheduler getScheduler() {
         return scheduler;
@@ -35,6 +40,10 @@ public final class PeachLib extends JavaPlugin {
         // Plugin startup logic
         plugin = this;
 
+        cfg = new CustomConfig2("settings.yml");
+        SetupConfig.setup();
+        ConfigData.reloadData();
+
         int pluginId = 29074;
         metrics = new Metrics(this, pluginId);
 
@@ -44,6 +53,12 @@ public final class PeachLib extends JavaPlugin {
         new ReloadSafetyListener(this, scheduler);
         Bukkit.getServer().getPluginManager().registerEvents(new GUIListener(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new HolidayGreetingListener(), this);
+
+        var cmd = getCommand("peachLibSettings");
+        if (cmd != null) {
+            cmd.setExecutor(new PeachLibSettings());
+            getLogger().info("PeachLibSettings Command registriert :D");
+        }
 
         getLogger().info("----------------------------------");
         getLogger().info("PeachLib has been loaded successfully.");
@@ -63,6 +78,7 @@ public final class PeachLib extends JavaPlugin {
         scheduler = null;
         updateChecker = null;
         metrics = null;
+        cfg = null;
         getLogger().info("PeachLib disabled.");
         plugin = null;
     }
