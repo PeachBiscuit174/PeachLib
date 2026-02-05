@@ -71,7 +71,7 @@
                             <shadedPattern>de.peachbiscuit174.peachlib.bstats</shadedPattern>
                         </relocation>
                     </relocations>
-                    <minimizeJar>true</minimizeJar>
+                    <minimizeJar>false</minimizeJar>
                 </configuration>
                 <executions>
                     <execution>
