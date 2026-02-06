@@ -2,12 +2,7 @@ name: Manual Release
 
 on:
   workflow_dispatch:
-    inputs:
-      make_latest:
-        description: 'Als "Latest Release" markieren?'
-        type: boolean
-        required: true
-        default: true
+    # Keine Inputs mehr nötig! Das Skript entscheidet selbst.
 
 jobs:
   build:
@@ -32,32 +27,21 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      # --- HIER IST DER FIX ---
-      - name: Determine Release Status
+      # --- HIER IST DIE AUTOMATIK ---
+      - name: Determine if Latest (Auto-Detection)
         id: status
         run: |
-          # Wir holen den Input als String
-          INPUT_VAL="${{ inputs.make_latest }}"
-          BRANCH="${{ github.ref }}"
+          CURRENT_BRANCH="${{ github.ref }}"
           
-          # Standard: false
-          FINAL_VAL="false"
-          
-          # Logik:
-          # Wenn der Haken gesetzt ist ("true"), dann erlauben wir es.
-          # Wenn der Haken NICHT gesetzt ist ("false"), bleibt es false.
-          
-          if [[ "$INPUT_VAL" == "true" ]]; then
-            FINAL_VAL="true"
+          # Wir prüfen hart auf den Main-Branch (refs/heads/main)
+          # Falls dein Hauptbranch "master" heißt, ändere "main" zu "master"
+          if [[ "$CURRENT_BRANCH" == "refs/heads/main" ]]; then
+            echo "Branch is main. Setting as LATEST release."
+            echo "MAKE_LATEST=true" >> $GITHUB_OUTPUT
+          else
+            echo "Branch is $CURRENT_BRANCH (not main). This will NOT be latest."
+            echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT
           fi
-          
-          # Debugging Info in die Logs schreiben (damit du siehst, was passiert)
-          echo "Input from Checkbox: $INPUT_VAL"
-          echo "Current Branch: $BRANCH"
-          echo "Decision for Latest: $FINAL_VAL"
-          
-          # Wert für den nächsten Schritt speichern
-          echo "MAKE_LATEST=$FINAL_VAL" >> $GITHUB_OUTPUT
 
       - name: Build with Maven
         run: mvn clean package -f pom.xml
@@ -74,7 +58,7 @@ jobs:
         with:
           tag_name: "v${{ steps.get_version.outputs.VERSION }}"
           name: "PeachLib v${{ steps.get_version.outputs.VERSION }}"
-
+          # Hier wird das automatisch ermittelte Ergebnis eingesetzt
           make_latest: ${{ steps.status.outputs.MAKE_LATEST }}
           files: |
             target/PeachLib-${{ steps.get_version.outputs.VERSION }}.jar
