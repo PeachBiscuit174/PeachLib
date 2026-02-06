@@ -32,15 +32,32 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Determine if Latest
-        id: is_latest
+      # --- HIER IST DER FIX ---
+      - name: Determine Release Status
+        id: status
         run: |
-          # Standard: Wenn wir auf 'main' sind, ist es latest. Sonst nicht.
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
-          else
-            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+          # Wir holen den Input als String
+          INPUT_VAL="${{ inputs.make_latest }}"
+          BRANCH="${{ github.ref }}"
+          
+          # Standard: false
+          FINAL_VAL="false"
+          
+          # Logik:
+          # Wenn der Haken gesetzt ist ("true"), dann erlauben wir es.
+          # Wenn der Haken NICHT gesetzt ist ("false"), bleibt es false.
+          
+          if [[ "$INPUT_VAL" == "true" ]]; then
+            FINAL_VAL="true"
           fi
+          
+          # Debugging Info in die Logs schreiben (damit du siehst, was passiert)
+          echo "Input from Checkbox: $INPUT_VAL"
+          echo "Current Branch: $BRANCH"
+          echo "Decision for Latest: $FINAL_VAL"
+          
+          # Wert für den nächsten Schritt speichern
+          echo "MAKE_LATEST=$FINAL_VAL" >> $GITHUB_OUTPUT
 
       - name: Build with Maven
         run: mvn clean package -f pom.xml
@@ -48,10 +65,7 @@ jobs:
       - name: Generate Metadata & Checksum
         run: |
           sha256sum target/PeachLib-${{ steps.get_version.outputs.VERSION }}.jar | awk '{print $1}' > target/checksum.txt
-          
-          # API Version robust extrahieren
           API_VERSION=$(grep "^api-version:" src/main/resources/plugin.yml | cut -d ':' -f 2 | tr -d " '" | tr -d '\r')
-          
           echo "{\"version\": \"${{ steps.get_version.outputs.VERSION }}\", \"api_version\": \"$API_VERSION\"}" > target/metadata.json
 
       - name: Create GitHub Release
@@ -60,7 +74,8 @@ jobs:
         with:
           tag_name: "v${{ steps.get_version.outputs.VERSION }}"
           name: "PeachLib v${{ steps.get_version.outputs.VERSION }}"
-          make_latest: ${{ github.event.inputs.make_latest }}
+
+          make_latest: ${{ steps.status.outputs.MAKE_LATEST }}
           files: |
             target/PeachLib-${{ steps.get_version.outputs.VERSION }}.jar
             target/checksum.txt
