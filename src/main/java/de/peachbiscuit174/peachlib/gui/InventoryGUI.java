@@ -9,7 +9,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +37,8 @@ import java.util.Map;
 public class InventoryGUI implements InventoryHolder {
 
     private final Inventory inventory;
-    private final Map<Integer, GUIButton> buttons = new HashMap<>();
+    private final Map<Integer, GUIButton> slotMap = new HashMap<>();
+    private final Map<String, GUIButton> idMap = new HashMap<>();
     private static final MiniMessage MM = MiniMessage.miniMessage();
     private String[] shape;
     private final Map<Character, GUIButton> charMapping = new HashMap<>();
@@ -43,7 +46,8 @@ public class InventoryGUI implements InventoryHolder {
     /**
      * The tag key used to identify items that should not be removed from the GUI.
      */
-    public static final String PROTECTED_TAG = "gui_protected_ppl";
+    public static final String PROTECTED_TAG = "gui_protected_pl";
+    public static final String GUI_ID_TAG = "gui_action_id_pl";
 
     /**
      * Creates a new InventoryGUI.
@@ -58,15 +62,69 @@ public class InventoryGUI implements InventoryHolder {
 
     /**
      * Places a button into a specific slot and applies the necessary tags.
+     * Replaces existing buttons!
      *
      * @param slot   The inventory slot (0 to size-1).
      * @param button The {@link GUIButton} to place.
      * @return The current instance for fluent chaining.
      */
     public InventoryGUI setButton(int slot, @NotNull GUIButton button) {
-        buttons.put(slot, button);
+
+        slotMap.put(slot, button);
+
+        idMap.put(button.getActionId(), button);
+
         updateSlot(slot);
         return this;
+    }
+
+    /**
+     * Remove a button from a specific slot and from the entire GUI
+     * @param slot The Inventory Slot
+     * @return The current instance for fluent chaining.
+     */
+    public InventoryGUI removeButton(int slot) {
+        GUIButton btn = slotMap.remove(slot);
+        if (btn != null) {
+            idMap.remove(btn.getActionId()); // Auch aus ID-Map löschen
+            inventory.setItem(slot, null);
+        }
+        return this;
+    }
+
+    /**
+     * Moves a button from one to another slot, it overwrites existing buttons/placeholders!
+     * @param fromSlot The Slot where the button is that should move.
+     * @param toSlot The Slot where the button should move to.
+     * @return The current instance for fluent chaining.
+     */
+    public InventoryGUI moveButton(int fromSlot, int toSlot) {
+        GUIButton button = slotMap.get(fromSlot);
+
+        if (button != null) {
+            slotMap.remove(fromSlot);
+            inventory.setItem(fromSlot, null);
+
+            setButton(toSlot, button);
+        }
+        return this;
+    }
+
+    /**
+     * Get a Button with it's actionID
+     * @param actionId actionID from button to get.
+     * @return The Requested Button or null if it not exist.
+     */
+    public @Nullable GUIButton getButtonWithID(@NotNull String actionId) {
+        return idMap.get(actionId);
+    }
+
+    /**
+     * Get all Buttons from the Map with the Buttons actionID's
+     * @return All Buttons from idMap.
+     */
+    public Collection<GUIButton> getAllButtonsFromIdMap() {
+        return idMap.values();
     }
 
     /**
@@ -81,13 +139,13 @@ public class InventoryGUI implements InventoryHolder {
      * @return The current instance for fluent chaining.
      */
     public InventoryGUI updateSlot(int slot) {
-        GUIButton button = buttons.get(slot);
+        GUIButton button = slotMap.get(slot);
         if (button != null) {
             ItemStack itemStack = button.getItemBuilder().build();
 
             // Apply tags directly via ItemTag class to support multiple tags
             ItemTag.setItemTag(itemStack, PROTECTED_TAG);
-            ItemTag.setItemTag(itemStack, button.getActionId());
+            ItemTag.setItemStringTag(itemStack, GUI_ID_TAG, button.getActionId());
 
             inventory.setItem(slot, itemStack);
         }
@@ -201,7 +259,7 @@ public class InventoryGUI implements InventoryHolder {
      *
      * @return A map of slots and their corresponding {@link GUIButton}.
      */
-    public Map<Integer, GUIButton> getButtons() { return buttons; }
+    public Map<Integer, GUIButton> getButtons() { return slotMap; }
 
     @Override
     public @NotNull Inventory getInventory() { return inventory; }

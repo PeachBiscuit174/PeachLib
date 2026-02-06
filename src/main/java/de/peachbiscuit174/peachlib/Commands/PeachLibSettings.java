@@ -6,7 +6,7 @@ import de.peachbiscuit174.peachlib.api.items.ItemBuilderAPI;
 import de.peachbiscuit174.peachlib.api.player.PlayerManagerAPI;
 import de.peachbiscuit174.peachlib.gui.GUIButton;
 import de.peachbiscuit174.peachlib.gui.InventoryGUI;
-import de.peachbiscuit174.peachlib.other.ConfigData;
+import de.peachbiscuit174.peachlib.configstuff.ConfigData;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

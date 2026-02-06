@@ -50,5 +50,17 @@ public class ItemTagAPI {
         return ItemTag.removeItemTag(itemStack, item_tag_key);
     }
 
+    public static ItemStack setItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key, @NotNull String value) {
+        return ItemTag.setItemStringTag(itemStack, item_tag_key, value);
+    }
+
+    public static boolean isItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+        return ItemTag.isItemStringTag(itemStack, item_tag_key);
+    }
+
+    public static String getItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+        return ItemTag.getItemStringTag(itemStack, item_tag_key);
+    }
+
 
 }

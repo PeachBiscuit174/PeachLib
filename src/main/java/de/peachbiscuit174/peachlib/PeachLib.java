@@ -1,6 +1,9 @@
 package de.peachbiscuit174.peachlib;
 
 import de.peachbiscuit174.peachlib.Commands.PeachLibSettings;
+import de.peachbiscuit174.peachlib.configstuff.ConfigData;
+import de.peachbiscuit174.peachlib.configstuff.CustomConfig2;
+import de.peachbiscuit174.peachlib.configstuff.SetupConfig;
 import de.peachbiscuit174.peachlib.gui.GUIListener;
 import de.peachbiscuit174.peachlib.other.*;
 import de.peachbiscuit174.peachlib.scheduler.LibraryScheduler;

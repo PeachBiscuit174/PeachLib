@@ -20,27 +20,27 @@ public class GUIListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
         ItemStack clickedItem = event.getCurrentItem();
+        if (clickedItem == null || clickedItem.getType().isAir()) return;
 
-        // Security check: Block movement if protected
-        if (clickedItem != null && ItemTag.isItemTag(clickedItem, InventoryGUI.PROTECTED_TAG)) {
+        if (ItemTag.isItemTag(clickedItem, InventoryGUI.PROTECTED_TAG)) {
             event.setCancelled(true);
         }
 
-        // GUI Logic
         if (event.getInventory().getHolder() instanceof InventoryGUI gui) {
-            GUIButton button = gui.getButtons().get(event.getRawSlot());
 
-            if (button != null) {
-                // Feature: Automatically give item to player
-                if (button.isGiveToPlayerOnClick()) {
-                    PlayerManagerAPI api = new PlayerManagerAPI(player);
-                    // Build a fresh item from the button's builder (clean, no GUI tags)
-                    ItemStack cleanItem = button.getItemBuilder().build();
-                    api.giveOrDropItem(cleanItem);
+            String actionID = ItemTag.getItemStringTag(clickedItem, InventoryGUI.GUI_ID_TAG);
+            if (actionID != null) {
+                GUIButton button = gui.getButtonWithID(actionID);
+                if (button != null) {
+                    if (button.isGiveToPlayerOnClick()) {
+                        PlayerManagerAPI api = new PlayerManagerAPI(player);
+
+                        ItemStack cleanItem = button.getItemBuilder().build();
+                        api.giveOrDropItem(cleanItem);
+                    }
+
+                    button.onClick(event);
                 }
-
-                // Execute custom click logic
-                button.onClick(event);
             }
         }
     }

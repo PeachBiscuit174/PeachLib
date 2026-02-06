@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.peachbiscuit174.peachlib.PeachLib;
-import de.peachbiscuit174.peachlib.other.ConfigData;
+import de.peachbiscuit174.peachlib.configstuff.ConfigData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;

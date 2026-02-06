@@ -1,4 +1,4 @@
-package de.peachbiscuit174.peachlib.other;
+package de.peachbiscuit174.peachlib.configstuff;
 
 import de.peachbiscuit174.peachlib.PeachLib;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,21 +10,13 @@ import java.io.File;
  * @author peachbiscuit174
  * @since 1.0.0
  */
-public class CustomConfig {
+public class CustomConfig2 {
     private File file;
     private FileConfiguration config;
 
 
-    public CustomConfig(String folderName, String configName) {
-
-        File ordner = new File(PeachLib.getPlugin().getDataFolder(), folderName);
-        if (!ordner.exists()) {
-            ordner.mkdirs();
-        }
-
-
-        file = new File(ordner, configName);
-
+    public CustomConfig2(String configName) {
+        file = new File(PeachLib.getPlugin().getDataFolder(), configName);
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -37,10 +29,6 @@ public class CustomConfig {
 
     public FileConfiguration getConfig() {
         return config;
-    }
-
-    public String getName() {
-        return file.getName();
     }
 
     public void save() {

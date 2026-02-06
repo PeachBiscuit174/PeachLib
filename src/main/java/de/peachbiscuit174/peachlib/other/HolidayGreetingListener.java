@@ -1,5 +1,6 @@
 package de.peachbiscuit174.peachlib.other;
 
+import de.peachbiscuit174.peachlib.configstuff.CustomConfig2;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;

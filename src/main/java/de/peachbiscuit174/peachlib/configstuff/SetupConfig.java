@@ -1,4 +1,4 @@
-package de.peachbiscuit174.peachlib.other;
+package de.peachbiscuit174.peachlib.configstuff;
 
 import de.peachbiscuit174.peachlib.PeachLib;
 import org.bukkit.configuration.file.FileConfiguration;
