@@ -1,6 +1,7 @@
 package de.peachbiscuit174.peachlib.updatecheck;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.peachbiscuit174.peachlib.PeachLib;
@@ -35,297 +36,272 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Robust and secure UpdateChecker for PeachLib.
+ * Robust and secure UpdateChecker for PeachLib with Metadata Support.
  * <p>
- * <b>Security & Integrity Features:</b>
+ * <b>Logic:</b>
  * <ul>
- * <li><b>Atomic Downloads:</b> Downloads updates to a temporary file first (`.tmp`).
- * Only after successful SHA-256 verification and API compatibility checks is the file
- * atomically moved to the final `.jar` name. This prevents corrupt files from crashing the server on restart.</li>
- * <li><b>Strict API Checking:</b> Prevents downloading a version intended for a newer Minecraft version
- * than the one currently running.</li>
- * <li><b>GitHub Integration:</b> Fetches the latest release data directly from the GitHub REST API.</li>
+ * <li>Checks the last 10 releases from GitHub.</li>
+ * <li>Compares SemVer versions correctly (e.g. 1.10 > 1.9).</li>
+ * <li>Downloads 'metadata.json' first to verify compatibility (API version).</li>
+ * <li>Prevents incompatible updates (e.g., 1.21 plugin on 1.20 server).</li>
+ * <li>Performs atomic download & verification of the JAR.</li>
  * </ul>
  * </p>
  *
  * @author peachbiscuit174
- * @since 1.0.0
+ * @since 1.1.0
  */
 public class UpdateChecker implements Listener {
 
     private final JavaPlugin plugin;
-
-    // The repository to check for updates (Format: "User/Repo")
     private final String githubRepo = "PeachBiscuit174/PeachLib";
 
-    // Containers for update information fetched from the API
-    private String latestVersion;
-    private String downloadUrl;     // The direct link to the jar file
-    private String checksumUrl;     // The direct link to the checksum.txt
-    private String remoteFileName;  // The actual filename of the release asset
-
-    // Volatile boolean to ensure thread visibility when accessed from the main thread (PlayerJoinEvent)
+    // Information about the pending update (if found)
+    private String latestCompatibleVersion;
+    private String downloadUrl;
+    private String checksumUrl;
+    private String remoteFileName;
     private volatile boolean isUpdateAvailable = false;
 
-    // HTTP Client optimized for reusing connections (Java 11+)
     private final HttpClient httpClient;
 
-    /**
-     * Constructor for the UpdateChecker.
-     * Configures the HttpClient with timeouts to prevent thread hanging.
-     *
-     * @param plugin The main plugin instance.
-     */
     public UpdateChecker(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
-
-        // We configure a connect timeout. If GitHub is down or slow,
-        // we don't want the thread to hang indefinitely.
         this.httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(java.time.Duration.ofSeconds(10))
                 .build();
     }
 
-    /**
-     * Initializes the update checker lifecycle.
-     * <p>
-     * 1. Registers the event listener for join notifications.<br>
-     * 2. Schedules the asynchronous update check task via the LibraryScheduler.
-     * </p>
-     */
     public void bootstrap() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        // Check if the custom scheduler is available to prevent NullPointerExceptions
         if (PeachLib.getScheduler() != null) {
-            // Schedule the task: Starts immediately (0), repeats every 12 hours
             PeachLib.getScheduler().runAsyncRepeating(this::checkUpdates, 0L, 12L, TimeUnit.HOURS);
         } else {
-            plugin.getLogger().severe("Could not start UpdateChecker: LibraryScheduler is null! Ensure correct initialization order in Main class.");
+            plugin.getLogger().severe("Could not start UpdateChecker: LibraryScheduler is null!");
         }
     }
 
     /**
-     * The core logic for checking updates.
-     * <p>
-     * This method runs asynchronously. It queries the GitHub API, compares versions,
-     * and initiates the download process if a valid update is found.
-     * </p>
+     * Core Logic: Iterates through releases to find the newest COMPATIBLE version.
      */
     private void checkUpdates() {
         if (!ConfigData.getAutoUpdateStatus()) return;
+
         try {
-            // Build the HTTP request for the GitHub API
-            // We use a specific User-Agent to comply with GitHub's API policy
+            // Request the list of releases (not just latest)
+            // per_page=10 means we check the last 10 releases
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.github.com/repos/" + githubRepo + "/releases/latest"))
+                    .uri(URI.create("https://api.github.com/repos/" + githubRepo + "/releases?per_page=10"))
                     .header("Accept", "application/vnd.github.v3+json")
                     .header("User-Agent", "PeachLib-UpdateChecker")
-                    .timeout(java.time.Duration.ofSeconds(10)) // Fail fast if API is unreachable
+                    .timeout(java.time.Duration.ofSeconds(10))
                     .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // If the API call fails (e.g., 404 Not Found, 403 Rate Limit), log it and exit
             if (response.statusCode() != 200) {
                 plugin.getLogger().warning("Update check failed. HTTP Status Code: " + response.statusCode());
                 return;
             }
 
-            // Parse the JSON response
-            JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+            JsonArray releases = JsonParser.parseString(response.body()).getAsJsonArray();
+            String currentVersion = plugin.getPluginMeta().getVersion().trim();
 
-            // Extract version from "tag_name" (e.g., "v1.0.5" -> "1.0.5")
-            this.latestVersion = json.get("tag_name").getAsString().replace("v", "").trim();
+            // Iterate through releases (GitHub usually returns them newest first, but we check logic anyway)
+            for (JsonElement element : releases) {
+                JsonObject release = element.getAsJsonObject();
 
-            // Compare local version with remote version
-            if (isNewerVersionAvailable()) {
-                // Get the list of files (assets) attached to the release
-                JsonArray assets = json.getAsJsonArray("assets");
-                parseAssets(assets);
+                // Remove "v" prefix from tag (e.g. "v1.2.0" -> "1.2.0")
+                String releaseVersion = release.get("tag_name").getAsString().replace("v", "").trim();
 
-                // Check strict API compatibility (e.g., prevent installing a 1.21 plugin on a 1.20 server)
-                String currentApiVersion = plugin.getPluginMeta().getAPIVersion();
-
-                if (isApiVersionCompatible(currentApiVersion)) {
-                    // Version is new AND compatible -> Start download logic
-                    handleDownloadProcess();
-                } else {
-                    plugin.getLogger().info("Update check skipped: A new version is available (" + latestVersion + "), but it is not compatible with your server version.");
+                // 1. Version Comparison Logic (SemVer)
+                // If the remote release is NOT newer than our current version, we skip it.
+                // This handles cases like: Current=1.2.0, Remote=1.1.0 -> Skip.
+                if (!isRemoteNewer(currentVersion, releaseVersion)) {
+                    continue;
                 }
+
+                // 2. Parse Assets to find metadata.json
+                JsonArray assets = release.getAsJsonArray("assets");
+                String metadataUrl = null;
+
+                for (JsonElement assetElem : assets) {
+                    JsonObject asset = assetElem.getAsJsonObject();
+                    if (asset.get("name").getAsString().equals("metadata.json")) {
+                        metadataUrl = asset.get("browser_download_url").getAsString();
+                        break;
+                    }
+                }
+
+                // 3. Verify Metadata (Compatibility Check)
+                boolean isCompatible = false;
+                if (metadataUrl != null) {
+                    // Modern Way: Check metadata.json
+                    isCompatible = checkMetadataCompatibility(metadataUrl);
+                } else {
+                    // Fallback: If no metadata exists (legacy release), we assume strict mode -> Skip
+                    continue;
+                }
+
+                if (isCompatible) {
+                    // WE FOUND A WINNER!
+                    // This is a newer version AND it is compatible with our server.
+                    this.latestCompatibleVersion = releaseVersion;
+                    parseAssetsForDownload(assets); // Extract JAR & Checksum URLs
+
+                    // Start download logic immediately and stop searching
+                    handleDownloadProcess();
+                    return;
+                }
+
+                // If not compatible, loop continues to the next release.
             }
+
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Update check failed due to an exception.", e);
         }
     }
 
     /**
-     * Iterates through the release assets to find the JAR file and the Checksum file.
-     *
-     * @param assets The 'assets' JSON array from the GitHub response.
+     * Checks if the remote version is strictly greater than the current version.
+     * Handles Semantic Versioning (e.g., 1.10.0 > 1.9.0).
+     * * @param current The locally installed version.
+     * @param remote The version found on GitHub.
+     * @return true if remote > current.
      */
-    private void parseAssets(JsonArray assets) {
+    private boolean isRemoteNewer(String current, String remote) {
+        // Strip non-numeric characters except dots (removes -SNAPSHOT, v, etc.)
+        // Example: "1.0.0-SNAPSHOT15" -> "1.0.015" (Wait, strictly regex replaces all non digits/dots)
+        // Better strategy: Split by non-digit separators first.
+
+        String[] cParts = current.split("[^0-9]+");
+        String[] rParts = remote.split("[^0-9]+");
+
+        int length = Math.max(cParts.length, rParts.length);
+
+        for (int i = 0; i < length; i++) {
+            int c = i < cParts.length && !cParts[i].isEmpty() ? Integer.parseInt(cParts[i]) : 0;
+            int r = i < rParts.length && !rParts[i].isEmpty() ? Integer.parseInt(rParts[i]) : 0;
+
+            if (r > c) return true;  // Remote is newer in this segment
+            if (r < c) return false; // Remote is older in this segment
+        }
+
+        // Versions are numerically equal (e.g. 1.0 vs 1.0.0)
+        return false;
+    }
+
+    /**
+     * Downloads and parses metadata.json in memory to check API version.
+     */
+    private boolean checkMetadataCompatibility(String url) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+
+                // Get API Version from Metadata
+                if (json.has("api_version")) {
+                    String requiredApi = json.get("api_version").getAsString();
+                    return isApiVersionCompatible(requiredApi);
+                }
+            }
+        } catch (Exception ignored) {
+            // On error, assume incompatible
+        }
+        return false;
+    }
+
+    private void parseAssetsForDownload(JsonArray assets) {
         this.downloadUrl = null;
         this.checksumUrl = null;
 
-        for (int i = 0; i < assets.size(); i++) {
-            JsonObject asset = assets.get(i).getAsJsonObject();
+        for (JsonElement assetElem : assets) {
+            JsonObject asset = assetElem.getAsJsonObject();
             String name = asset.get("name").getAsString();
-            String url = asset.get("browser_download_url").getAsString(); // Exact download link
+            String url = asset.get("browser_download_url").getAsString();
 
-            // Identify the plugin JAR
             if (name.endsWith(".jar") && name.contains("PeachLib")) {
                 this.downloadUrl = url;
                 this.remoteFileName = name;
-            }
-            // Identify the checksum file (generated by the workflow)
-            else if (name.endsWith("checksum.txt") || name.endsWith("sha256")) {
+            } else if (name.endsWith("checksum.txt")) {
                 this.checksumUrl = url;
             }
         }
     }
 
-    /**
-     * Compares the plugin.yml version with the GitHub release version.
-     *
-     * @return true if the remote version is different (assumed newer), false otherwise.
-     */
-    private boolean isNewerVersionAvailable() {
-        String current = plugin.getPluginMeta().getVersion().trim();
-        return !current.equalsIgnoreCase(latestVersion);
-    }
-
-    /**
-     * Checks if the plugin's API version is compatible with the running server.
-     *
-     * @param apiVersion The API version string from the local plugin.yml.
-     * @return true if compatible or if no API version is defined (legacy).
-     */
     private boolean isApiVersionCompatible(String apiVersion) {
-        if (apiVersion == null) return true; // Legacy support
-
+        if (apiVersion == null || apiVersion.isEmpty()) return true;
         String serverVersion = Bukkit.getMinecraftVersion(); // e.g., "1.21.4"
-        // Strict check: server version must start with the API version.
-        // Example: Server "1.21.4" starts with API "1.21" -> Compatible.
+        // Check if server version starts with the API version (e.g. 1.21.4 starts with 1.21)
         return serverVersion.startsWith(apiVersion);
     }
 
-    /**
-     * Manages the secure download process.
-     * <p>
-     * <b>Strategy:</b>
-     * <ol>
-     * <li>Downloads to a {@code .tmp} file first.</li>
-     * <li>Verifies SHA-256 hash of the temp file.</li>
-     * <li>Verifies the internal {@code plugin.yml} of the temp file.</li>
-     * <li>Atomically moves (renames) the temp file to the final {@code .jar}.</li>
-     * </ol>
-     * </p>
-     */
     private void handleDownloadProcess() {
-        if (downloadUrl == null || remoteFileName == null) {
-            plugin.getLogger().warning("New version detected, but no valid JAR file was found in the GitHub assets.");
-            return;
-        }
+        if (downloadUrl == null || remoteFileName == null) return;
 
-        // Bukkit defines a standard 'update' folder for automatic plugin updates on restart
         File updateFolder = Bukkit.getUpdateFolderFile();
-        if (!updateFolder.exists()) {
-            if (!updateFolder.mkdirs()) {
-                plugin.getLogger().severe("Could not create update folder. Update aborted.");
-                return;
-            }
-        }
+        if (!updateFolder.exists() && !updateFolder.mkdirs()) return;
 
-        // The final destination file (e.g., plugins/update/PeachLib-1.0.1.jar)
         File finalTargetFile = new File(updateFolder, remoteFileName);
-
-        // The temporary download file (e.g., plugins/update/PeachLib-1.0.1.jar.tmp)
         File tempFile = new File(updateFolder, remoteFileName + ".tmp");
 
-        // Cleanup old versions of this library to prevent clutter
         cleanupOldVersions(updateFolder);
 
-        // Fetch the remote SHA-256 hash for verification
+        // Fetch Remote Checksum
         String remoteHash = fetchRemoteHash();
         if (remoteHash.isEmpty()) {
-            plugin.getLogger().warning("Update verification failed: Checksum not found or empty on remote. Aborting for security.");
+            plugin.getLogger().warning("Skipping update: No checksum found.");
             return;
         }
 
-        // Scenario: The server might have already downloaded the update but hasn't restarted yet.
-        // If the file exists and is valid, we don't need to download it again.
+        // Check if file already exists
         if (finalTargetFile.exists()) {
             if (isValidFile(finalTargetFile, remoteHash)) {
                 this.isUpdateAvailable = true;
-                return; // File is already ready
+                return;
             }
-            // If validation fails, the file is likely corrupt. Delete it.
             try { Files.delete(finalTargetFile.toPath()); } catch (IOException ignored) {}
         }
 
-        // Perform the download to the TEMP file
+        // Download & Verify
         if (downloadAndVerify(tempFile, remoteHash)) {
-            // Check API compatibility of the downloaded TEMP JAR
+            // Double Check: Verify internal plugin.yml of the downloaded JAR just to be safe
             if (verifyRemoteJarApi(tempFile)) {
                 try {
-                    // ATOMIC MOVE: Rename .tmp to .jar
-                    // This is the most critical step. It ensures that the server never sees
-                    // a partial or corrupt file in the update folder.
                     Files.move(tempFile.toPath(), finalTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-
                     this.isUpdateAvailable = true;
-                    plugin.getLogger().info("Successfully downloaded and verified update: " + remoteFileName);
+                    plugin.getLogger().info("Update ready: " + latestCompatibleVersion + " (Compatible with " + Bukkit.getMinecraftVersion() + ")");
                 } catch (IOException e) {
-                    plugin.getLogger().severe("Failed to move update file into place: " + e.getMessage());
-                    // Cleanup temp file on failure
-                    try { Files.deleteIfExists(tempFile.toPath()); } catch (IOException ignored) {}
+                    plugin.getLogger().severe("Failed to install update: " + e.getMessage());
                 }
             } else {
-                plugin.getLogger().severe("Update rejected: Downloaded JAR API version is not compatible with this server.");
+                plugin.getLogger().warning("Downloaded JAR internal API mismatch. Aborting.");
                 try { Files.deleteIfExists(tempFile.toPath()); } catch (IOException ignored) {}
             }
         }
     }
 
-    /**
-     * Removes old versions of PeachLib from the update folder.
-     *
-     * @param updateFolder The directory where updates are stored.
-     */
     private void cleanupOldVersions(File updateFolder) {
         File[] files = updateFolder.listFiles((dir, name) -> name.endsWith(".jar") && name.startsWith("PeachLib"));
         if (files != null) {
             for (File file : files) {
-                // If it's a PeachLib jar but NOT the one we are currently handling, delete it.
                 if (!file.getName().equals(remoteFileName)) {
-                    try {
-                        Files.deleteIfExists(file.toPath());
-                    } catch (IOException ignored) {}
+                    try { Files.deleteIfExists(file.toPath()); } catch (IOException ignored) {}
                 }
             }
         }
     }
 
-    /**
-     * Checks if a local file is valid by verifying its hash and internal API version.
-     *
-     * @param file The file to check.
-     * @param hash The expected SHA-256 hash.
-     * @return true if valid.
-     */
     private boolean isValidFile(File file, String hash) {
         return calculateSHA256(file).equalsIgnoreCase(hash) && verifyRemoteJarApi(file);
     }
 
-    /**
-     * Inspects the downloaded JAR file (without loading it) to read its plugin.yml.
-     *
-     * @param jarFile The downloaded JAR file.
-     * @return true if compatible, false otherwise.
-     */
     private boolean verifyRemoteJarApi(File jarFile) {
         try (ZipFile zip = new ZipFile(jarFile)) {
             ZipEntry entry = zip.getEntry("plugin.yml");
@@ -337,86 +313,46 @@ public class UpdateChecker implements Listener {
                 return isApiVersionCompatible(apiVersion);
             }
         } catch (IOException e) {
-            plugin.getLogger().warning("Could not read API version from downloaded JAR: " + e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Fetches the SHA-256 hash from the remote checksum URL.
-     *
-     * @return The hash string, or an empty string on failure.
-     */
     private String fetchRemoteHash() {
         if (checksumUrl == null) return "";
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(checksumUrl))
-                    .header("User-Agent", "PeachLib-UpdateChecker")
-                    .timeout(java.time.Duration.ofSeconds(10))
-                    .GET()
-                    .build();
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(checksumUrl)).GET().build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
             if (response.statusCode() == 200) {
-                // Logic: "hashvalue  filename" -> splits by whitespace -> takes first element "hashvalue"
                 return response.body().trim().split("\\s+")[0];
             }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to fetch checksum: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
         return "";
     }
 
-    /**
-     * Downloads the file from the URL and verifies its integrity immediately.
-     *
-     * @param targetFile   The destination file on disk.
-     * @param expectedHash The SHA-256 hash expected from the server.
-     * @return true if download was successful AND hash matches.
-     */
     private boolean downloadAndVerify(File targetFile, String expectedHash) {
         try {
-            plugin.getLogger().info("Downloading update: " + remoteFileName);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(downloadUrl))
-                    .header("User-Agent", "PeachLib-UpdateChecker")
-                    .timeout(java.time.Duration.ofMinutes(2)) // Generous timeout for large files
-                    .GET()
-                    .build();
-
-            // Stream response directly to file (reduces RAM usage for large files)
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(downloadUrl)).GET().build();
             HttpResponse<Path> response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(targetFile.toPath()));
 
             if (response.statusCode() != 200) {
-                plugin.getLogger().warning("Download failed with HTTP " + response.statusCode());
                 Files.deleteIfExists(targetFile.toPath());
                 return false;
             }
 
-            // Verify integrity
             String localHash = calculateSHA256(targetFile);
             if (localHash.equalsIgnoreCase(expectedHash)) {
                 return true;
             } else {
-                plugin.getLogger().severe("Checksum mismatch! The downloaded file is corrupt or compromised.");
+                plugin.getLogger().severe("Checksum mismatch on update download.");
                 Files.deleteIfExists(targetFile.toPath());
                 return false;
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("Download error: " + e.getMessage());
             try { Files.deleteIfExists(targetFile.toPath()); } catch (IOException ignored) {}
             return false;
         }
     }
 
-    /**
-     * Calculates the SHA-256 hash of a local file.
-     *
-     * @param file The file to hash.
-     * @return The hex string of the hash.
-     */
     private String calculateSHA256(File file) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -431,17 +367,13 @@ public class UpdateChecker implements Listener {
         }
     }
 
-    /**
-     * Event Listener: Notifies OP players when they join if an update is pending.
-     *
-     * @param event The PlayerJoinEvent.
-     */
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.isOp() && isUpdateAvailable) {
             Component message = MiniMessage.miniMessage().deserialize(
                     "<newline><gold>PeachLib</gold> <gray>»</gray> <green>A verified update is ready!</green><newline>" +
+                            "<gray>Version: <yellow>" + latestCompatibleVersion + "</yellow></gray><newline>" +
                             "<gray>Restart the server to apply the changes.</gray><newline>"
             );
             player.sendMessage(message);
