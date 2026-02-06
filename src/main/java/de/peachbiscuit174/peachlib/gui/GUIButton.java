@@ -27,7 +27,7 @@ public class GUIButton {
      */
     public GUIButton(@NotNull ItemBuilder itemBuilder, @NotNull String actionId, @Nullable Consumer<InventoryClickEvent> clickAction) {
         this.itemBuilder = itemBuilder;
-        this.actionId = actionId;
+        this.actionId = actionId.toLowerCase().replace(" ", "_");
         this.clickAction = clickAction;
     }
 
