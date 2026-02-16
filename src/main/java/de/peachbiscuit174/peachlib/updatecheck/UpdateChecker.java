@@ -41,15 +41,14 @@ import java.util.zip.ZipFile;
  * <b>Logic:</b>
  * <ul>
  * <li>Checks the last 10 releases from GitHub.</li>
- * <li>Compares SemVer versions correctly (e.g. 1.10 > 1.9).</li>
- * <li>Downloads 'metadata.json' first to verify compatibility (API version).</li>
- * <li>Prevents incompatible updates (e.g., 1.21 plugin on 1.20 server).</li>
- * <li>Performs atomic download & verification of the JAR.</li>
+ * <li>Selects the HIGHEST version that is COMPATIBLE with the server.</li>
+ * <li>Uses semantic version comparison for Plugin Version AND Minecraft API Version.</li>
+ * <li>Handles complex scenarios like Server 1.21.11 vs API 1.21.4 correctly.</li>
  * </ul>
  * </p>
  *
  * @author peachbiscuit174
- * @since 1.1.0
+ * @since 1.2.0
  */
 public class UpdateChecker implements Listener {
 
@@ -84,14 +83,12 @@ public class UpdateChecker implements Listener {
     }
 
     /**
-     * Core Logic: Iterates through releases to find the newest COMPATIBLE version.
+     * Core Logic: Iterates through releases to find the BEST COMPATIBLE version.
      */
     private void checkUpdates() {
         if (!ConfigData.getAutoUpdateStatus()) return;
 
         try {
-            // Request the list of releases (not just latest)
-            // per_page=10 means we check the last 10 releases
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.github.com/repos/" + githubRepo + "/releases?per_page=10"))
                     .header("Accept", "application/vnd.github.v3+json")
@@ -110,17 +107,21 @@ public class UpdateChecker implements Listener {
             JsonArray releases = JsonParser.parseString(response.body()).getAsJsonArray();
             String currentVersion = plugin.getPluginMeta().getVersion().trim();
 
-            // Iterate through releases (GitHub usually returns them newest first, but we check logic anyway)
+            // Variables to track the "Best Candidate" found so far
+            String bestVersionFound = currentVersion;
+            JsonArray bestAssets = null;
+            boolean foundBetterVersion = false;
+
+            // Iterate through releases
             for (JsonElement element : releases) {
                 JsonObject release = element.getAsJsonObject();
 
-                // Remove "v" prefix from tag (e.g. "v1.2.0" -> "1.2.0")
+                // Normalize version tag
                 String releaseVersion = release.get("tag_name").getAsString().replace("v", "").trim();
 
-                // 1. Version Comparison Logic (SemVer)
-                // If the remote release is NOT newer than our current version, we skip it.
-                // This handles cases like: Current=1.2.0, Remote=1.1.0 -> Skip.
-                if (!isRemoteNewer(currentVersion, releaseVersion)) {
+                // 1. Version Check: Is this release strictly newer than our best candidate?
+                // If we already found v2.0, we ignore v1.5 even if it's compatible.
+                if (!isVersionGreater(bestVersionFound, releaseVersion)) {
                     continue;
                 }
 
@@ -139,25 +140,22 @@ public class UpdateChecker implements Listener {
                 // 3. Verify Metadata (Compatibility Check)
                 boolean isCompatible = false;
                 if (metadataUrl != null) {
-                    // Modern Way: Check metadata.json
                     isCompatible = checkMetadataCompatibility(metadataUrl);
-                } else {
-                    // Fallback: If no metadata exists (legacy release), we assume strict mode -> Skip
-                    continue;
                 }
 
+                // 4. Update Candidate if compatible
                 if (isCompatible) {
-                    // WE FOUND A WINNER!
-                    // This is a newer version AND it is compatible with our server.
-                    this.latestCompatibleVersion = releaseVersion;
-                    parseAssetsForDownload(assets); // Extract JAR & Checksum URLs
-
-                    // Start download logic immediately and stop searching
-                    handleDownloadProcess();
-                    return;
+                    bestVersionFound = releaseVersion;
+                    bestAssets = assets;
+                    foundBetterVersion = true;
                 }
+            }
 
-                // If not compatible, loop continues to the next release.
+            // If we found a better version after checking all candidates, proceed
+            if (foundBetterVersion && bestAssets != null) {
+                this.latestCompatibleVersion = bestVersionFound;
+                parseAssetsForDownload(bestAssets);
+                handleDownloadProcess();
             }
 
         } catch (Exception e) {
@@ -166,31 +164,21 @@ public class UpdateChecker implements Listener {
     }
 
     /**
-     * Checks if the remote version is strictly greater than the current version.
-     * Handles Semantic Versioning (e.g., 1.10.0 > 1.9.0).
-     * * @param current The locally installed version.
-     * @param remote The version found on GitHub.
-     * @return true if remote > current.
+     * Checks if remote version > base version (Semantic Versioning).
      */
-    private boolean isRemoteNewer(String current, String remote) {
-        // Strip non-numeric characters except dots (removes -SNAPSHOT, v, etc.)
-        // Example: "1.0.0-SNAPSHOT15" -> "1.0.015" (Wait, strictly regex replaces all non digits/dots)
-        // Better strategy: Split by non-digit separators first.
+    private boolean isVersionGreater(String base, String remote) {
+        int[] baseParts = parseVersionParts(base);
+        int[] remoteParts = parseVersionParts(remote);
 
-        String[] cParts = current.split("[^0-9]+");
-        String[] rParts = remote.split("[^0-9]+");
-
-        int length = Math.max(cParts.length, rParts.length);
+        int length = Math.max(baseParts.length, remoteParts.length);
 
         for (int i = 0; i < length; i++) {
-            int c = i < cParts.length && !cParts[i].isEmpty() ? Integer.parseInt(cParts[i]) : 0;
-            int r = i < rParts.length && !rParts[i].isEmpty() ? Integer.parseInt(rParts[i]) : 0;
+            int b = (i < baseParts.length) ? baseParts[i] : 0;
+            int r = (i < remoteParts.length) ? remoteParts[i] : 0;
 
-            if (r > c) return true;  // Remote is newer in this segment
-            if (r < c) return false; // Remote is older in this segment
+            if (r > b) return true;
+            if (r < b) return false;
         }
-
-        // Versions are numerically equal (e.g. 1.0 vs 1.0.0)
         return false;
     }
 
@@ -205,18 +193,18 @@ public class UpdateChecker implements Listener {
             if (response.statusCode() == 200) {
                 JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
 
-                // Get API Version from Metadata
                 if (json.has("api_version")) {
                     String requiredApi = json.get("api_version").getAsString();
                     return isApiVersionCompatible(requiredApi);
                 }
             }
-        } catch (Exception ignored) {
-            // On error, assume incompatible
-        }
+        } catch (Exception ignored) {}
         return false;
     }
 
+    /**
+     * Parses assets to find the JAR and Checksum file.
+     */
     private void parseAssetsForDownload(JsonArray assets) {
         this.downloadUrl = null;
         this.checksumUrl = null;
@@ -235,11 +223,47 @@ public class UpdateChecker implements Listener {
         }
     }
 
-    private boolean isApiVersionCompatible(String apiVersion) {
-        if (apiVersion == null || apiVersion.isEmpty()) return true;
-        String serverVersion = Bukkit.getMinecraftVersion(); // e.g., "1.21.4"
-        // Check if server version starts with the API version (e.g. 1.21.4 starts with 1.21)
-        return serverVersion.startsWith(apiVersion);
+    /**
+     * Strict Semantic Version Check for Minecraft API.
+     * Handles: Server 1.21.11 vs API 1.21.4 correctly.
+     */
+    private boolean isApiVersionCompatible(String requiredApi) {
+        if (requiredApi == null || requiredApi.isEmpty()) return true;
+
+        String serverVersion = Bukkit.getMinecraftVersion(); // e.g., "1.21.11"
+
+        int[] serverParts = parseVersionParts(serverVersion);
+        int[] apiParts = parseVersionParts(requiredApi);
+
+        int length = Math.max(serverParts.length, apiParts.length);
+
+        for (int i = 0; i < length; i++) {
+            int sVer = (i < serverParts.length) ? serverParts[i] : 0;
+            int aVer = (i < apiParts.length) ? apiParts[i] : 0;
+
+            if (sVer > aVer) return true; // Server is newer in this segment
+            if (sVer < aVer) return false; // Server is older -> Incompatible
+        }
+
+        return true; // Versions are identical
+    }
+
+    /**
+     * Helper: Splits "1.21.4" into [1, 21, 4].
+     */
+    private int[] parseVersionParts(String version) {
+        if (version == null) return new int[0];
+        String[] parts = version.split("[^0-9]+");
+        int[] numbers = new int[parts.length];
+
+        for (int i = 0; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                try {
+                    numbers[i] = Integer.parseInt(parts[i]);
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return numbers;
     }
 
     private void handleDownloadProcess() {
@@ -271,7 +295,7 @@ public class UpdateChecker implements Listener {
 
         // Download & Verify
         if (downloadAndVerify(tempFile, remoteHash)) {
-            // Double Check: Verify internal plugin.yml of the downloaded JAR just to be safe
+            // Verify internal plugin.yml
             if (verifyRemoteJarApi(tempFile)) {
                 try {
                     Files.move(tempFile.toPath(), finalTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
