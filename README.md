@@ -11,11 +11,11 @@ A PaperMC Library.
 ---
 
 ### 📌 Compatibility
-| Feature | Status            |
-| :--- |:------------------|
-| **Supported MC Version** | **1.21 - 1.21.11** |
-| **Platform** | PaperMC and forks |
-| **Java Version** | 21+               |
+| Feature | Status               |
+| :--- |:---------------------|
+| **Supported MC Version** | **1.21.4 - 1.21.11** |
+| **Platform** | PaperMC and forks    |
+| **Java Version** | 21+                  |
 
 *Note: Only the version listed above is officially supported by the latest library version. Other versions might work but are not actively tested.*
 
@@ -148,7 +148,7 @@ Eine PaperMC-Library.
 ### 📌 Kompatibilität
 | Feature | Status                  |
 | :--- |:------------------------|
-| **Unterstützte MC-Version** | **1.21.11**             |
+| **Unterstützte MC-Version** | **1.21.4 - 1.21.11**    |
 | **Plattform** | PaperMC und forks davon |
 | **Java Version** | 21+                     |
 
