@@ -67,7 +67,7 @@ public final class PeachLib extends JavaPlugin {
         getLogger().info("PeachLib has been loaded successfully.");
         getLogger().info("Version: " + getPluginMeta().getVersion());
         getLogger().info("Developed by PeachBiscuit174");
-        getLogger().info("Thank you for using PeachLib (PPL) :D");
+        getLogger().info("Thank you for using PeachLib (PL) :D");
         getLogger().info("----------------------------------");
     }
 

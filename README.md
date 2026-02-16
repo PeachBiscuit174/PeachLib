@@ -13,7 +13,7 @@ A PaperMC Library.
 ### 📌 Compatibility
 | Feature | Status            |
 | :--- |:------------------|
-| **Supported MC Version** | **1.21.11**       |
+| **Supported MC Version** | **1.21 - 1.21.11** |
 | **Platform** | PaperMC and forks |
 | **Java Version** | 21+               |
 
@@ -38,7 +38,7 @@ Add the library to your project via **JitPack**.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT16-MC1.21.11</version>
+        <version>v1.0.0-SNAPSHOT17</version>
     </dependency>
 ```
 
@@ -173,7 +173,7 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT16-MC1.21.11</version>
+        <version>v1.0.0-SNAPSHOT17</version>
     </dependency>
 ```
 
