@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PeachLibSettings implements CommandExecutor, TabCompleter {
     @Override
@@ -30,7 +31,7 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                 GUIButton autoUpdateButton = guiApi.createButton(itemBuilderAPI.builder(Material.WATER_BUCKET).setDisplayName("<red>Auto Update: <white>" + ConfigData.getAutoUpdateStatus()), "toggleAutoUpdate", e -> {
                     if (e.getInventory().getHolder() instanceof InventoryGUI gui) {
                         ConfigData.toggleAutoUpdateStatus();
-                        gui.getButtons().get(e.getRawSlot()).setItemBuilder(gui.getButtons().get(e.getRawSlot()).getItemBuilder().setDisplayName("<red>Auto Update: <white>" + ConfigData.getAutoUpdateStatus()));
+                        Objects.requireNonNull(gui.getButtonWithID("toggleAutoUpdate")).setItemBuilder(Objects.requireNonNull(gui.getButtonWithID("toggleAutoUpdate")).getItemBuilder().setDisplayName("<red>Auto Update: <white>" + ConfigData.getAutoUpdateStatus()));
                         gui.updateSlot(e.getRawSlot());
                     }
 
@@ -45,7 +46,7 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                         playerManagerAPI.sendMessage("<red>Auto Update Deactivated :(");
                     }
                 } else {
-                    playerManagerAPI.sendMessage("<red>" + args[0] + " is not a valid input!");
+                    playerManagerAPI.sendMessage("<red>" + args[0] + " is not a valid input for 1 argument!");
                 }
             } else if (args.length == 2) {
                 String arg1 = args[0];
@@ -70,7 +71,7 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                         playerManagerAPI.sendMessage("<green> Use 'true' or 'false' as argument!");
                     }
                 } else {
-                    playerManagerAPI.sendMessage("<red>" + arg1 + " is not a valid input!");
+                    playerManagerAPI.sendMessage("<red>" + arg1 + " is not a valid input for 2 arguments!");
                 }
             } else {
                 playerManagerAPI.sendMessage("<red> To many arguments!");
