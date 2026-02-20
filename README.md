@@ -31,14 +31,14 @@ Add the library to your project via **JitPack**.
     <repositories>
         <repository>
             <id>jitpack.io</id>
-            <url>[https://jitpack.io](https://jitpack.io)</url>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT17</version>
+        <version>v1.0.0-SNAPSHOT18</version>
     </dependency>
 ```
 
@@ -166,14 +166,14 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
     <repositories>
         <repository>
             <id>jitpack.io</id>
-            <url>[https://jitpack.io](https://jitpack.io)</url>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT17</version>
+        <version>v1.0.0-SNAPSHOT18</version>
     </dependency>
 ```
 
