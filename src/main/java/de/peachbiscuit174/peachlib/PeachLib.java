@@ -2,7 +2,7 @@ package de.peachbiscuit174.peachlib;
 
 import de.peachbiscuit174.peachlib.Commands.PeachLibSettings;
 import de.peachbiscuit174.peachlib.configstuff.ConfigData;
-import de.peachbiscuit174.peachlib.configstuff.CustomConfig2;
+import de.peachbiscuit174.peachlib.configstuff.CustomConfig;
 import de.peachbiscuit174.peachlib.configstuff.SetupConfig;
 import de.peachbiscuit174.peachlib.gui.GUIListener;
 import de.peachbiscuit174.peachlib.other.*;
@@ -24,9 +24,9 @@ public final class PeachLib extends JavaPlugin {
     private static UpdateChecker updateChecker;
     private static LibraryScheduler scheduler;
     private Metrics metrics;
-    private static CustomConfig2 cfg;
+    private static CustomConfig cfg;
 
-    public static CustomConfig2 getCfg() {
+    public static CustomConfig getCfg() {
         return cfg;
     }
 
@@ -43,7 +43,7 @@ public final class PeachLib extends JavaPlugin {
         // Plugin startup logic
         plugin = this;
 
-        cfg = new CustomConfig2("settings.yml");
+        cfg = new CustomConfig("settings.yml");
         SetupConfig.setup();
         ConfigData.reloadData();
 

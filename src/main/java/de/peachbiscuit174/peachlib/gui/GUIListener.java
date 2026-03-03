@@ -5,8 +5,10 @@ import de.peachbiscuit174.peachlib.items.ItemTag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -19,27 +21,44 @@ public class GUIListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null || clickedItem.getType().isAir()) return;
+        if (event.getView().getTopInventory().getHolder() instanceof InventoryGUI gui) {
 
-        if (ItemTag.isItemTag(clickedItem, InventoryGUI.PROTECTED_TAG)) {
-            event.setCancelled(true);
-        }
+            Inventory clickedInv = event.getClickedInventory();
+            if (clickedInv == null) return;
 
-        if (event.getInventory().getHolder() instanceof InventoryGUI gui) {
+            ItemStack currentItem = event.getCurrentItem();
 
-            String actionID = ItemTag.getItemStringTag(clickedItem, InventoryGUI.GUI_ID_TAG);
-            if (actionID != null) {
-                GUIButton button = gui.getButtonWithID(actionID);
-                if (button != null) {
-                    if (button.isGiveToPlayerOnClick()) {
-                        PlayerManagerAPI api = new PlayerManagerAPI(player);
+            if (currentItem != null && ItemTag.isItemTag(currentItem, InventoryGUI.PROTECTED_TAG)) {
+                event.setCancelled(true);
+            }
 
-                        ItemStack cleanItem = button.getItemBuilder().build();
-                        api.giveOrDropItem(cleanItem);
+
+            if (!gui.canItemsPlacedInGUI()) {
+                if (clickedInv.equals(event.getView().getTopInventory())) {
+                    event.setCancelled(true);
+                }
+
+                else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+            }
+
+            if (currentItem != null && clickedInv.equals(event.getView().getTopInventory())) {
+                String actionID = ItemTag.getItemStringTag(currentItem, InventoryGUI.GUI_ID_TAG);
+
+                if (actionID != null) {
+                    GUIButton button = gui.getButtonWithID(actionID);
+                    if (button != null) {
+
+
+                        if (button.isGiveToPlayerOnClick()) {
+                            PlayerManagerAPI api = new PlayerManagerAPI(player);
+                            ItemStack cleanItem = button.getItemBuilder().build();
+                            api.giveOrDropItem(cleanItem);
+                        }
+
+                        button.onClick(event);
                     }
-
-                    button.onClick(event);
                 }
             }
         }

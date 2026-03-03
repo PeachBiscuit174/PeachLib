@@ -14,14 +14,18 @@ public class CustomConfig {
     private File file;
     private FileConfiguration config;
 
+    public CustomConfig(String configName) {
+        this("", configName);
+    }
 
     public CustomConfig(String folderName, String configName) {
+        File ordner = folderName.isEmpty() ?
+                PeachLib.getPlugin().getDataFolder() :
+                new File(PeachLib.getPlugin().getDataFolder(), folderName);
 
-        File ordner = new File(PeachLib.getPlugin().getDataFolder(), folderName);
         if (!ordner.exists()) {
             ordner.mkdirs();
         }
-
 
         file = new File(ordner, configName);
 

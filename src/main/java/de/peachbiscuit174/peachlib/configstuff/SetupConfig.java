@@ -5,7 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class SetupConfig {
 
-    private static final CustomConfig2 cfg_raw = PeachLib.getCfg();
+    private static final CustomConfig cfg_raw = PeachLib.getCfg();
     private static final FileConfiguration cfg = cfg_raw.getConfig();
 
     public static void setup() {

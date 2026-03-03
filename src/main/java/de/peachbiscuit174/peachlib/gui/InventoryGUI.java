@@ -42,6 +42,7 @@ public class InventoryGUI implements InventoryHolder {
     private static final MiniMessage MM = MiniMessage.miniMessage();
     private String[] shape;
     private final Map<Character, GUIButton> charMapping = new HashMap<>();
+    private boolean canItemsPlacedInGUI = false;
 
     /**
      * The tag key used to identify items that should not be removed from the GUI.
@@ -116,7 +117,7 @@ public class InventoryGUI implements InventoryHolder {
      * @return The Requested Button or null if it not exist.
      */
     public @Nullable GUIButton getButtonWithID(@NotNull String actionId) {
-        return idMap.get(actionId);
+        return idMap.get(actionId.toLowerCase());
     }
 
     /**
@@ -135,10 +136,14 @@ public class InventoryGUI implements InventoryHolder {
      * button's specific action ID using the {@link ItemTag} API.
      * </p>
      *
-     * @param slot The slot to refresh.
+     * @param slot The slot to refresh (supports both getSlot() and getRawSlot()).
      * @return The current instance for fluent chaining.
      */
     public InventoryGUI updateSlot(int slot) {
+        if (slot < 0 || slot >= inventory.getSize()) {
+            return this;
+        }
+
         GUIButton button = slotMap.get(slot);
         if (button != null) {
             ItemStack itemStack = button.getItemBuilder().build();
@@ -243,6 +248,26 @@ public class InventoryGUI implements InventoryHolder {
                 }
             }
         }
+    }
+
+    /**
+     * Sets whether players are allowed to place their own items into the GUI.
+     * * @param value true to allow item placement, false to prevent it.
+     */
+    public void setCanItemsPlacedInGUI(boolean value) {
+        canItemsPlacedInGUI = value;
+    }
+
+    /**
+     * Checks if players are allowed to place their own items into the GUI.
+     * <p>
+     * By default, this is {@code false}.
+     * </p>
+     *
+     * @return true if item placement is allowed, false otherwise.
+     */
+    public boolean canItemsPlacedInGUI() {
+        return canItemsPlacedInGUI;
     }
 
     /**

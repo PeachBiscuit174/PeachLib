@@ -1,6 +1,6 @@
 package de.peachbiscuit174.peachlib.other;
 
-import de.peachbiscuit174.peachlib.configstuff.CustomConfig2;
+import de.peachbiscuit174.peachlib.configstuff.CustomConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -18,7 +18,7 @@ import java.time.LocalDate;
  */
 public class HolidayGreetingListener implements Listener {
 
-    private final CustomConfig2 configWrapper;
+    private final CustomConfig configWrapper;
     private final FileConfiguration config;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
@@ -26,7 +26,7 @@ public class HolidayGreetingListener implements Listener {
      * Constructor: Initializes the config and sets default holiday messages.
      */
     public HolidayGreetingListener() {
-        this.configWrapper = new CustomConfig2("holidays.yml");
+        this.configWrapper = new CustomConfig("holidays.yml");
         this.config = configWrapper.getConfig();
 
         setupDefaults();
