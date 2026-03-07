@@ -46,6 +46,8 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                 } else {
                     playerManagerAPI.sendMessage("<red>Auto Update Deactivated :(");
                 }
+            } else if (args[0].equalsIgnoreCase("reloadConfig")) {
+                ConfigData.reloadData();
             } else {
                 playerManagerAPI.sendMessage("<red>" + args[0] + " is not a valid input for 1 argument!");
             }
@@ -114,6 +116,7 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             list.add("toggleAutoUpdate");
             list.add("setAutoUpdate");
+            list.add("reloadConfig");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setAutoUpdate")) {
             list.add("true");
             list.add("false");

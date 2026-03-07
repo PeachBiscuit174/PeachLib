@@ -44,6 +44,9 @@ import java.util.zip.ZipFile;
  * <li>Selects the HIGHEST version that is COMPATIBLE with the server.</li>
  * <li>Uses semantic version comparison for Plugin Version AND Minecraft API Version.</li>
  * <li>Handles complex scenarios like Server 1.21.11 vs API 1.21.4 correctly.</li>
+ * <li>Accurately resolves SNAPSHOT vs Release comparisons.</li>
+ * <li><b>Release Channels:</b> Respects the configuration flag to allow or deny updates to SNAPSHOT versions
+ * when currently running on a full release.</li>
  * </ul>
  * </p>
  *
@@ -105,7 +108,13 @@ public class UpdateChecker implements Listener {
             }
 
             JsonArray releases = JsonParser.parseString(response.body()).getAsJsonArray();
+
+            // Determine our current update channel (Stable vs Snapshot)
             String currentVersion = plugin.getPluginMeta().getVersion().trim();
+            boolean isCurrentSnapshot = currentVersion.toUpperCase().contains("-SNAPSHOT");
+
+            // Allow snapshots if we are already on a snapshot, OR if the config explicitly allows it
+            boolean allowSnapshots = isCurrentSnapshot || ConfigData.isAllowSnapshotUpdates();
 
             // Variables to track the "Best Candidate" found so far
             String bestVersionFound = currentVersion;
@@ -118,9 +127,14 @@ public class UpdateChecker implements Listener {
 
                 // Normalize version tag
                 String releaseVersion = release.get("tag_name").getAsString().replace("v", "").trim();
+                boolean isRemoteSnapshot = releaseVersion.toUpperCase().contains("-SNAPSHOT");
+
+                // GATEKEEPER: If we do not allow snapshots, ignore remote snapshot versions completely
+                if (!allowSnapshots && isRemoteSnapshot) {
+                    continue;
+                }
 
                 // 1. Version Check: Is this release strictly newer than our best candidate?
-                // If we already found v2.0, we ignore v1.5 even if it's compatible.
                 if (!isVersionGreater(bestVersionFound, releaseVersion)) {
                     continue;
                 }
@@ -164,11 +178,18 @@ public class UpdateChecker implements Listener {
     }
 
     /**
-     * Checks if remote version > base version (Semantic Versioning).
+     * Checks if remote version > base version (Semantic Versioning with SNAPSHOT support).
+     *
+     * @param base   The current version (e.g., 1.0.0-SNAPSHOT18)
+     * @param remote The remote version from GitHub (e.g., 1.0.0 or 1.0.0-SNAPSHOT19)
+     * @return True if the remote version is definitively newer.
      */
     private boolean isVersionGreater(String base, String remote) {
-        int[] baseParts = parseVersionParts(base);
-        int[] remoteParts = parseVersionParts(remote);
+        String baseClean = base.split("-")[0];
+        String remoteClean = remote.split("-")[0];
+
+        int[] baseParts = parseVersionParts(baseClean);
+        int[] remoteParts = parseVersionParts(remoteClean);
 
         int length = Math.max(baseParts.length, remoteParts.length);
 
@@ -179,7 +200,64 @@ public class UpdateChecker implements Listener {
             if (r > b) return true;
             if (r < b) return false;
         }
-        return false;
+
+        // The base numbers are exactly equal. (e.g. 1.0.0 vs 1.0.0)
+        // Now check for SNAPSHOT / Prerelease suffix
+        boolean baseIsSnapshot = base.toUpperCase().contains("-SNAPSHOT");
+        boolean remoteIsSnapshot = remote.toUpperCase().contains("-SNAPSHOT");
+
+        if (baseIsSnapshot && !remoteIsSnapshot) {
+            // Remote is a full release, Base is a snapshot. Remote is GREATER.
+            return true;
+        } else if (!baseIsSnapshot && remoteIsSnapshot) {
+            // Remote is a snapshot, Base is a full release. Remote is NOT greater.
+            // (A release 1.0.0 is always newer/better than a 1.0.0-SNAPSHOT)
+            return false;
+        } else if (baseIsSnapshot && remoteIsSnapshot) {
+            // Both are snapshots (e.g., 1.0.0-SNAPSHOT18 vs 1.0.0-SNAPSHOT19)
+            int baseSnap = getSnapshotNumber(base);
+            int remoteSnap = getSnapshotNumber(remote);
+            return remoteSnap > baseSnap;
+        }
+
+        return false; // Both are the exact same release version
+    }
+
+    /**
+     * Extracts the build number from a SNAPSHOT version string.
+     *
+     * @param version The version string (e.g., "1.0.0-SNAPSHOT19")
+     * @return The extracted integer (e.g., 19), or 0 if parsing fails.
+     */
+    private int getSnapshotNumber(String version) {
+        String upper = version.toUpperCase();
+        int idx = upper.indexOf("-SNAPSHOT");
+        if (idx == -1) return 0;
+
+        String remainder = upper.substring(idx + 9).replaceAll("[^0-9]", "");
+        if (remainder.isEmpty()) return 0;
+
+        try {
+            return Integer.parseInt(remainder);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Parses the main version numbers into an integer array.
+     */
+    private int[] parseVersionParts(String cleanVersion) {
+        if (cleanVersion == null) return new int[0];
+        String[] parts = cleanVersion.split("\\.");
+        int[] numbers = new int[parts.length];
+
+        for (int i = 0; i < parts.length; i++) {
+            try {
+                numbers[i] = Integer.parseInt(parts[i].replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException ignored) {}
+        }
+        return numbers;
     }
 
     /**
@@ -246,24 +324,6 @@ public class UpdateChecker implements Listener {
         }
 
         return true; // Versions are identical
-    }
-
-    /**
-     * Helper: Splits "1.21.4" into [1, 21, 4].
-     */
-    private int[] parseVersionParts(String version) {
-        if (version == null) return new int[0];
-        String[] parts = version.split("[^0-9]+");
-        int[] numbers = new int[parts.length];
-
-        for (int i = 0; i < parts.length; i++) {
-            if (!parts[i].isEmpty()) {
-                try {
-                    numbers[i] = Integer.parseInt(parts[i]);
-                } catch (NumberFormatException ignored) {}
-            }
-        }
-        return numbers;
     }
 
     private void handleDownloadProcess() {

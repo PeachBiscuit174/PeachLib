@@ -1,5 +1,6 @@
 package de.peachbiscuit174.peachlib.gui;
 
+import de.peachbiscuit174.peachlib.api.API;
 import de.peachbiscuit174.peachlib.api.player.PlayerManagerAPI;
 import de.peachbiscuit174.peachlib.items.ItemTag;
 import org.bukkit.entity.Player;
@@ -52,9 +53,8 @@ public class GUIListener implements Listener {
 
 
                         if (button.isGiveToPlayerOnClick()) {
-                            PlayerManagerAPI api = new PlayerManagerAPI(player);
                             ItemStack cleanItem = button.getItemBuilder().build();
-                            api.giveOrDropItem(cleanItem);
+                            API.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(cleanItem);
                         }
 
                         button.onClick(event);

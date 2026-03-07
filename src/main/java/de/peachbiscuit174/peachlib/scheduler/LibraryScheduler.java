@@ -28,6 +28,7 @@ import java.util.function.Consumer;
  * to prevent the library from freezing the server, even under heavy load.</li>
  * <li><b>Real-Time Scheduling:</b> Delayed and repeating tasks use Java's {@link ScheduledExecutorService},
  * meaning they run based on wall-clock time (milliseconds), not Server-Ticks.</li>
+ * <li><b>Queue Protection:</b> Repeating tasks are protected against queue flooding during server lag.</li>
  * </ul>
  *
  * <p><b>Note:</b> Do not instantiate this class manually. Use the provided
@@ -173,6 +174,10 @@ public class LibraryScheduler {
 
     /**
      * Schedules a task for synchronous execution that repeats at a fixed <b>REAL-TIME</b> rate.
+     * <p>
+     * Includes anti-spam protection: The task will not be added to the queue if the previous
+     * execution is still pending due to server lag.
+     * </p>
      *
      * @param runnable The task to execute on the main thread.
      * @param delay    The time to delay first execution.
@@ -182,7 +187,8 @@ public class LibraryScheduler {
      */
     public ScheduledFuture<?> runSyncRepeating(Runnable runnable, long delay, long period, TimeUnit unit) {
         if (isShutdown.get()) return null;
-        return timerService.scheduleAtFixedRate(() -> runSync(runnable), delay, period, unit);
+        RepeatingSyncTask safeTask = new RepeatingSyncTask(runnable);
+        return timerService.scheduleAtFixedRate(safeTask, delay, period, unit);
     }
 
     /**
@@ -303,5 +309,33 @@ public class LibraryScheduler {
         processSyncQueue(MAX_SHUTDOWN_SYNC_TIME_NANOS);
 
         instantiated = false;
+    }
+
+    /**
+     * A wrapper for repeating tasks. Prevents the task from being added to the syncQueue
+     * multiple times if the server's main thread is lagging behind.
+     */
+    private class RepeatingSyncTask implements Runnable {
+        private final Runnable actualTask;
+        private final AtomicBoolean isQueued = new AtomicBoolean(false);
+
+        RepeatingSyncTask(Runnable actualTask) {
+            this.actualTask = actualTask;
+        }
+
+        @Override
+        public void run() {
+            // Only add to queue if it's not already waiting to be executed
+            if (isQueued.compareAndSet(false, true)) {
+                runSync(() -> {
+                    try {
+                        actualTask.run();
+                    } finally {
+                        // Task has finished (or crashed), release lock for the next timer tick
+                        isQueued.set(false);
+                    }
+                });
+            }
+        }
     }
 }

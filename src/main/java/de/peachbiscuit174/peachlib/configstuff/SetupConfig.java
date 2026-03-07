@@ -12,6 +12,11 @@ public class SetupConfig {
         if (!cfg.isSet("setting.auto_update")) {
             cfg.set("setting.auto_update", true);
         }
+
+        if (!cfg.isSet("setting.allow_snapshot_updates")) {
+            cfg.set("setting.allow_snapshot_updates", false);
+        }
+
         cfg_raw.save();
 
 

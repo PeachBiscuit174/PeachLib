@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.util.logging.Level;
 
 /**
  * @author peachbiscuit174
@@ -33,7 +34,7 @@ public class CustomConfig {
             try {
                 file.createNewFile();
             } catch (Exception e) {
-                e.printStackTrace();
+                PeachLib.getPlugin().getLogger().log(Level.SEVERE, "Could not create config file: " + file.getName(), e);
             }
         }
         config = YamlConfiguration.loadConfiguration(file);
@@ -51,7 +52,7 @@ public class CustomConfig {
         try {
             config.save(file);
         } catch (Exception e) {
-            e.printStackTrace();
+            PeachLib.getPlugin().getLogger().log(Level.SEVERE, "Could not save config file: " + file.getName(), e);
         }
     }
 }
