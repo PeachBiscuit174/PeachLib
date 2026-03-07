@@ -47,19 +47,53 @@ Add the library to your project via **JitPack**.
 
 ---
 
-## 🛠 API Usage
+## ✨ Key Features & API
 
-Usage is centralized via the `API` class.
+- PeachLib offers a wide range of managers and APIs accessible via the central `API` class:
 
-**Example:**
+    - **📦 Items Manager:**
+        - **ItemBuilderAPI:** Build items with full MiniMessage support, custom model data, and ItemLore.
+
+        - **CustomHeadsAPI:** Easily create player heads via Base64, URI, or URL.
+
+        - **ItemSerializerAPI:** Serialize/Deserialize items to and from Base64 or bytes.
+
+        - **ItemTagAPI:** Manage PersistentDataContainer tags effortlessly.
+
+    - **🪟 GUI Manager:** Create modern InventoryGUI and multi-page PaginatedGUI instances. Features visual layout mapping (shape()), auto-item protection, and clickable GUIButton objects.
+
+    - **📁 File Manager:**
+  
+        - Asynchronous file/directory handling, safe atomic writes, and rotating backup cleaners.
+        - Secure Zip extractions with built-in protection against Zip-Bomb and Zip-Slip vulnerabilities.
+
+    - **⏱️ Scheduler Manager:** A high-performance, real-time LibraryScheduler using separate ThreadPools to offload tasks and prevent server lag.
+
+    - **👤 Player Manager:** Smart utilities like giveOrDropItem and MiniMessage-based display name management.
+
+    **Built-in Systems:**
+
+    - **Reload Protection:** Safely blocks the /reload command and forces a safe server shutdown to prevent plugin corruption.
+
+    - **Holiday Greetings:** Automatically greets players on holidays (New Year, Halloween, Christmas, etc.) with customizable messages.
+
+    - **Update Checker:** Checks for new GitHub releases automatically.
+
+
+**Example Usage:**
 ```java
-// Creates an ItemStack of a head via Base64 string
-ItemStack head = API.getItemsManager().getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...");
-```
-or
-```java
-CustomHeadsAPI customHeadsAPI = API.getItemsManager().getCustomHeadsAPI();
-ItemStack head = customHeadsAPI.getCustomHead("eyJ0ZXh0dXJlcyI6...");
+// Central API access point
+ItemsManager items = API.getItemsManager();
+
+// Create a custom head via Base64
+ItemStack head = items.getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...", "<gold>Special Head");
+
+// Open a simple GUI
+InventoryGUI gui = API.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Settings");
+gui.setButton(13, new GUIButton(items.getNewItemBuilderAPI().builder(Material.DIAMOND), "my_action", event -> {
+    event.getWhoClicked().sendMessage("Clicked!");
+}));
+gui.open(player);
 ```
 
 ---
@@ -182,19 +216,53 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
 
 ---
 
-## 🛠 API Nutzung
+## ✨ Hauptfunktionen & API
 
-Die Nutzung erfolgt zentral über die Klasse `API`.
+PeachLib bietet eine Vielzahl an Managern und APIs, die zentral über die `API` Klasse erreichbar sind:
+
+- **📦 Items Manager:**
+    
+    - **ItemBuilderAPI:** Erstelle Items mit MiniMessage-Support, Custom Model Data und ItemLore.
+
+    - **CustomHeadsAPI:** Generiere Spielerköpfe über Base64, URI oder URL.
+
+    - **ItemSerializerAPI:** Konvertiere Items in und aus Base64 oder Bytes.
+
+    - **ItemTagAPI:** Verwalte PersistentDataContainer-Tags ganz einfach.
+
+  - **🪟 GUI Manager:** Erstelle moderne InventoryGUI und mehrseitige PaginatedGUI Instanzen. Bietet visuelles Layout-Mapping (shape()), automatischen Item-Schutz und klickbare GUIButton-Objekte.
+  
+    - **📁 File Manager:**
+  
+        - Asynchrones Datei-Handling, sicheres atomares Speichern und automatische Backup-Bereinigung.
+        - Sichere Zip-Extrahierung mit integriertem Schutz vor Zip-Bomb- und Zip-Slip-Schwachstellen.
+
+  - **⏱️ Scheduler Manager:** Ein hochleistungsfähiger Echtzeit-LibraryScheduler, der eigene ThreadPools nutzt, um den Main-Thread zu entlasten und Server-Lag zu verhindern.
+
+  - **👤 Player Manager:** Praktische Utilities wie giveOrDropItem und die Verwaltung von Displaynamen via MiniMessage.
+
+**Integrierte Systeme:**
+
+  - **Reload-Schutz:** Blockiert den /reload-Befehl und erzwingt einen sicheren Server-Neustart, um Plugin-Korruption zu vermeiden.
+
+  - **Feiertagsgrüße:** Begrüßt Spieler automatisch an Feiertagen (Neujahr, Halloween, Weihnachten etc.) mit anpassbaren Nachrichten.
+
+  - **Update Checker:** Sucht automatisch nach neuen GitHub-Releases.
 
 **Beispiel:**
 ```java
-// Erstellt einen ItemStack eines Kopfes mithilfe eines Base64 String
-ItemStack head = API.getItemsManager().getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...");
-```
-oder
-```java
-CustomHeadsAPI customHeadsAPI = API.getItemsManager().getCustomHeadsAPI();
-ItemStack head = customHeadsAPI.getCustomHead("eyJ0ZXh0dXJlcyI6...");
+// Zentraler API-Zugriff
+ItemsManager items = API.getItemsManager();
+
+// Custom Head via Base64 erstellen
+ItemStack head = items.getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...", "<gold>Special Head");
+
+// Ein simples GUI öffnen
+InventoryGUI gui = API.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Einstellungen");
+gui.setButton(13, new GUIButton(items.getNewItemBuilderAPI().builder(Material.DIAMOND), "my_action", event -> {
+    event.getWhoClicked().sendMessage("Geklickt!");
+}));
+gui.open(player);
 ```
 
 ---
