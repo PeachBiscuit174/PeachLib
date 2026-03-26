@@ -45,8 +45,6 @@ import java.util.zip.ZipFile;
  * <li>Uses semantic version comparison for Plugin Version AND Minecraft API Version.</li>
  * <li>Handles complex scenarios like Server 1.21.11 vs API 1.21.4 correctly.</li>
  * <li>Accurately resolves SNAPSHOT vs Release comparisons.</li>
- * <li><b>Release Channels:</b> Respects the configuration flag to allow or deny updates to SNAPSHOT versions
- * when currently running on a full release.</li>
  * </ul>
  * </p>
  *
@@ -109,34 +107,28 @@ public class UpdateChecker implements Listener {
 
             JsonArray releases = JsonParser.parseString(response.body()).getAsJsonArray();
 
-            // Determine our current update channel (Stable vs Snapshot)
             String currentVersion = plugin.getPluginMeta().getVersion().trim();
             boolean isCurrentSnapshot = currentVersion.toUpperCase().contains("-SNAPSHOT");
-
-            // Allow snapshots if we are already on a snapshot, OR if the config explicitly allows it
             boolean allowSnapshots = isCurrentSnapshot || ConfigData.isAllowSnapshotUpdates();
 
-            // Variables to track the "Best Candidate" found so far
-            String bestVersionFound = currentVersion;
-            JsonArray bestAssets = null;
+            String bestCandidateVersion = currentVersion;
+            JsonArray bestCandidateAssets = null;
             boolean foundBetterVersion = false;
 
-            // Iterate through releases
+            // Iterate through releases (GitHub returns them newest first)
             for (JsonElement element : releases) {
                 JsonObject release = element.getAsJsonObject();
-
-                // Normalize version tag
                 String releaseVersion = release.get("tag_name").getAsString().replace("v", "").trim();
                 boolean isRemoteSnapshot = releaseVersion.toUpperCase().contains("-SNAPSHOT");
 
-                // GATEKEEPER: If we do not allow snapshots, ignore remote snapshot versions completely
+                // GATEKEEPER: Ignore snapshots if they aren't allowed
                 if (!allowSnapshots && isRemoteSnapshot) {
                     continue;
                 }
 
                 // 1. Version Check: Is this release strictly newer than our best candidate?
-                if (!isVersionGreater(bestVersionFound, releaseVersion)) {
-                    continue;
+                if (!isNewerVersion(bestCandidateVersion, releaseVersion)) {
+                    continue; // Skip if it's not better than what we already found/have
                 }
 
                 // 2. Parse Assets to find metadata.json
@@ -159,16 +151,16 @@ public class UpdateChecker implements Listener {
 
                 // 4. Update Candidate if compatible
                 if (isCompatible) {
-                    bestVersionFound = releaseVersion;
-                    bestAssets = assets;
+                    bestCandidateVersion = releaseVersion;
+                    bestCandidateAssets = assets;
                     foundBetterVersion = true;
                 }
             }
 
             // If we found a better version after checking all candidates, proceed
-            if (foundBetterVersion && bestAssets != null) {
-                this.latestCompatibleVersion = bestVersionFound;
-                parseAssetsForDownload(bestAssets);
+            if (foundBetterVersion && bestCandidateAssets != null) {
+                this.latestCompatibleVersion = bestCandidateVersion;
+                parseAssetsForDownload(bestCandidateAssets);
                 handleDownloadProcess();
             }
 
@@ -178,57 +170,42 @@ public class UpdateChecker implements Listener {
     }
 
     /**
-     * Checks if remote version > base version (Semantic Versioning with SNAPSHOT support).
-     *
-     * @param base   The current version (e.g., 1.0.0-SNAPSHOT18)
-     * @param remote The remote version from GitHub (e.g., 1.0.0 or 1.0.0-SNAPSHOT19)
-     * @return True if the remote version is definitively newer.
+     * Checks if candidateVersion > currentVersion (Semantic Versioning with SNAPSHOT support).
      */
-    private boolean isVersionGreater(String base, String remote) {
-        String baseClean = base.split("-")[0];
-        String remoteClean = remote.split("-")[0];
+    private boolean isNewerVersion(String currentVersion, String candidateVersion) {
+        String currentClean = currentVersion.split("-")[0];
+        String candidateClean = candidateVersion.split("-")[0];
 
-        int[] baseParts = parseVersionParts(baseClean);
-        int[] remoteParts = parseVersionParts(remoteClean);
+        int[] currentParts = parseVersionParts(currentClean);
+        int[] candidateParts = parseVersionParts(candidateClean);
 
-        int length = Math.max(baseParts.length, remoteParts.length);
+        int length = Math.max(currentParts.length, candidateParts.length);
 
         for (int i = 0; i < length; i++) {
-            int b = (i < baseParts.length) ? baseParts[i] : 0;
-            int r = (i < remoteParts.length) ? remoteParts[i] : 0;
+            int current = (i < currentParts.length) ? currentParts[i] : 0;
+            int candidate = (i < candidateParts.length) ? candidateParts[i] : 0;
 
-            if (r > b) return true;
-            if (r < b) return false;
+            if (candidate > current) return true; // Candidate is newer
+            if (candidate < current) return false; // Candidate is older
         }
 
-        // The base numbers are exactly equal. (e.g. 1.0.0 vs 1.0.0)
-        // Now check for SNAPSHOT / Prerelease suffix
-        boolean baseIsSnapshot = base.toUpperCase().contains("-SNAPSHOT");
-        boolean remoteIsSnapshot = remote.toUpperCase().contains("-SNAPSHOT");
+        // The base numbers are exactly equal. Check for SNAPSHOT / Prerelease
+        boolean currentIsSnapshot = currentVersion.toUpperCase().contains("-SNAPSHOT");
+        boolean candidateIsSnapshot = candidateVersion.toUpperCase().contains("-SNAPSHOT");
 
-        if (baseIsSnapshot && !remoteIsSnapshot) {
-            // Remote is a full release, Base is a snapshot. Remote is GREATER.
-            return true;
-        } else if (!baseIsSnapshot && remoteIsSnapshot) {
-            // Remote is a snapshot, Base is a full release. Remote is NOT greater.
-            // (A release 1.0.0 is always newer/better than a 1.0.0-SNAPSHOT)
-            return false;
-        } else if (baseIsSnapshot && remoteIsSnapshot) {
-            // Both are snapshots (e.g., 1.0.0-SNAPSHOT18 vs 1.0.0-SNAPSHOT19)
-            int baseSnap = getSnapshotNumber(base);
-            int remoteSnap = getSnapshotNumber(remote);
-            return remoteSnap > baseSnap;
+        if (currentIsSnapshot && !candidateIsSnapshot) {
+            return true; // Candidate is a full release, Current is a snapshot -> Candidate is BETTER
+        } else if (!currentIsSnapshot && candidateIsSnapshot) {
+            return false; // Candidate is snapshot, Current is full release -> Candidate is WORSE
+        } else if (currentIsSnapshot && candidateIsSnapshot) {
+            int currentSnap = getSnapshotNumber(currentVersion);
+            int candidateSnap = getSnapshotNumber(candidateVersion);
+            return candidateSnap > currentSnap;
         }
 
-        return false; // Both are the exact same release version
+        return false; // Both are exactly the same
     }
 
-    /**
-     * Extracts the build number from a SNAPSHOT version string.
-     *
-     * @param version The version string (e.g., "1.0.0-SNAPSHOT19")
-     * @return The extracted integer (e.g., 19), or 0 if parsing fails.
-     */
     private int getSnapshotNumber(String version) {
         String upper = version.toUpperCase();
         int idx = upper.indexOf("-SNAPSHOT");
@@ -244,11 +221,8 @@ public class UpdateChecker implements Listener {
         }
     }
 
-    /**
-     * Parses the main version numbers into an integer array.
-     */
     private int[] parseVersionParts(String cleanVersion) {
-        if (cleanVersion == null) return new int[0];
+        if (cleanVersion == null || cleanVersion.isEmpty()) return new int[0];
         String[] parts = cleanVersion.split("\\.");
         int[] numbers = new int[parts.length];
 
@@ -260,9 +234,6 @@ public class UpdateChecker implements Listener {
         return numbers;
     }
 
-    /**
-     * Downloads and parses metadata.json in memory to check API version.
-     */
     private boolean checkMetadataCompatibility(String url) {
         try {
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
@@ -270,7 +241,6 @@ public class UpdateChecker implements Listener {
 
             if (response.statusCode() == 200) {
                 JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-
                 if (json.has("api_version")) {
                     String requiredApi = json.get("api_version").getAsString();
                     return isApiVersionCompatible(requiredApi);
@@ -280,9 +250,6 @@ public class UpdateChecker implements Listener {
         return false;
     }
 
-    /**
-     * Parses assets to find the JAR and Checksum file.
-     */
     private void parseAssetsForDownload(JsonArray assets) {
         this.downloadUrl = null;
         this.checksumUrl = null;
@@ -303,12 +270,13 @@ public class UpdateChecker implements Listener {
 
     /**
      * Strict Semantic Version Check for Minecraft API.
-     * Handles: Server 1.21.11 vs API 1.21.4 correctly.
+     * Ensures Server Version >= Plugin API Version.
      */
     private boolean isApiVersionCompatible(String requiredApi) {
-        if (requiredApi == null || requiredApi.isEmpty()) return true;
+        if (requiredApi == null || requiredApi.trim().isEmpty()) return true;
 
-        String serverVersion = Bukkit.getMinecraftVersion(); // e.g., "1.21.11"
+        String serverVersion = Bukkit.getMinecraftVersion(); // e.g., "1.21.1"
+        requiredApi = requiredApi.replace("v", "").trim();
 
         int[] serverParts = parseVersionParts(serverVersion);
         int[] apiParts = parseVersionParts(requiredApi);
@@ -319,11 +287,11 @@ public class UpdateChecker implements Listener {
             int sVer = (i < serverParts.length) ? serverParts[i] : 0;
             int aVer = (i < apiParts.length) ? apiParts[i] : 0;
 
-            if (sVer > aVer) return true; // Server is newer in this segment
-            if (sVer < aVer) return false; // Server is older -> Incompatible
+            if (sVer > aVer) return true; // Server is explicitly NEWER than API -> Compatible!
+            if (sVer < aVer) return false; // Server is OLDER than API -> Incompatible!
         }
 
-        return true; // Versions are identical
+        return true; // Exact match
     }
 
     private void handleDownloadProcess() {
@@ -337,14 +305,12 @@ public class UpdateChecker implements Listener {
 
         cleanupOldVersions(updateFolder);
 
-        // Fetch Remote Checksum
         String remoteHash = fetchRemoteHash();
         if (remoteHash.isEmpty()) {
             plugin.getLogger().warning("Skipping update: No checksum found.");
             return;
         }
 
-        // Check if file already exists
         if (finalTargetFile.exists()) {
             if (isValidFile(finalTargetFile, remoteHash)) {
                 this.isUpdateAvailable = true;
@@ -353,9 +319,7 @@ public class UpdateChecker implements Listener {
             try { Files.delete(finalTargetFile.toPath()); } catch (IOException ignored) {}
         }
 
-        // Download & Verify
         if (downloadAndVerify(tempFile, remoteHash)) {
-            // Verify internal plugin.yml
             if (verifyRemoteJarApi(tempFile)) {
                 try {
                     Files.move(tempFile.toPath(), finalTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);

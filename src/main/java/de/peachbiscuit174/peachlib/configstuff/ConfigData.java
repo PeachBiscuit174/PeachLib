@@ -35,4 +35,16 @@ public class ConfigData {
         return allowSnapshotUpdates;
     }
 
+    public static void toggleAllowSnapshotUpdates() {
+        allowSnapshotUpdates = !allowSnapshotUpdates;
+        cfg.set("setting.allow_snapshot_updates", allowSnapshotUpdates);
+        cfg_raw.save();
+    }
+
+    public static void setAllowSnapshotUpdates(boolean value) {
+        allowSnapshotUpdates = value;
+        cfg.set("setting.allow_snapshot_updates", value);
+        cfg_raw.save();
+    }
+
 }

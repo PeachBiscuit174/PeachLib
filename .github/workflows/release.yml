@@ -2,7 +2,6 @@ name: Manual Release
 
 on:
   workflow_dispatch:
-    # Keine Inputs mehr nötig! Das Skript entscheidet selbst.
 
 jobs:
   build:
@@ -27,29 +26,13 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      # --- HIER IST DIE AUTOMATIK ---
-      - name: Determine if Latest (Auto-Detection)
-        id: status
-        run: |
-          CURRENT_BRANCH="${{ github.ref }}"
-          
-          # Wir prüfen hart auf den Main-Branch (refs/heads/main)
-          # Falls dein Hauptbranch "master" heißt, ändere "main" zu "master"
-          if [[ "$CURRENT_BRANCH" == "refs/heads/main" ]]; then
-            echo "Branch is main. Setting as LATEST release."
-            echo "MAKE_LATEST=true" >> $GITHUB_OUTPUT
-          else
-            echo "Branch is $CURRENT_BRANCH (not main). This will NOT be latest."
-            echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build with Maven
         run: mvn clean package -f pom.xml
 
       - name: Generate Metadata & Checksum
         run: |
           sha256sum target/PeachLib-${{ steps.get_version.outputs.VERSION }}.jar | awk '{print $1}' > target/checksum.txt
-          API_VERSION=$(grep "^api-version:" src/main/resources/plugin.yml | cut -d ':' -f 2 | tr -d " '" | tr -d '\r')
+          API_VERSION=$(grep -i "^ *api-version:" src/main/resources/plugin.yml | cut -d ':' -f 2 | tr -d " '" | tr -d '\r' || echo "")
           echo "{\"version\": \"${{ steps.get_version.outputs.VERSION }}\", \"api_version\": \"$API_VERSION\"}" > target/metadata.json
 
       - name: Create GitHub Release
@@ -58,13 +41,9 @@ jobs:
         with:
           tag_name: "v${{ steps.get_version.outputs.VERSION }}"
           name: "PeachLib v${{ steps.get_version.outputs.VERSION }}"
-          # Hier wird das automatisch ermittelte Ergebnis eingesetzt
-          make_latest: ${{ steps.status.outputs.MAKE_LATEST }}
           files: |
             target/PeachLib-${{ steps.get_version.outputs.VERSION }}.jar
             target/checksum.txt
             target/metadata.json
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

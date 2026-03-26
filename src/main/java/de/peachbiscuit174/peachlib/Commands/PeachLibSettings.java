@@ -48,6 +48,14 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                 }
             } else if (args[0].equalsIgnoreCase("reloadConfig")) {
                 ConfigData.reloadData();
+                playerManagerAPI.sendMessage("<green>Config reloaded :D");
+            } else if (args[0].equalsIgnoreCase("toggleAllowSnapshotUpdates")) {
+                ConfigData.toggleAllowSnapshotUpdates();
+                if (ConfigData.isAllowSnapshotUpdates()) {
+                    playerManagerAPI.sendMessage("<green>Allow Snapshot Updates Activated!");
+                } else {
+                    playerManagerAPI.sendMessage("<red>Allow Snapshot Updates Deactivated!");
+                }
             } else {
                 playerManagerAPI.sendMessage("<red>" + args[0] + " is not a valid input for 1 argument!");
             }
@@ -77,6 +85,25 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
                     playerManagerAPI.sendMessage("<red>" + arg2 + " is not a valid input!");
                     playerManagerAPI.sendMessage("<green> Use 'true' or 'false' as argument!");
                 }
+            } else if (arg1.equalsIgnoreCase("setAllowSnapshotUpdates")) {
+                if (arg2.equalsIgnoreCase("true")) {
+                    if (ConfigData.isAllowSnapshotUpdates()) {
+                        playerManagerAPI.sendMessage("<green>Allow Snapshot Updates is already Active :D");
+                    } else {
+                        ConfigData.setAllowSnapshotUpdates(true);
+                        playerManagerAPI.sendMessage("<green>Allow Snapshot Updates Activated :D");
+                    }
+                } else if (arg2.equalsIgnoreCase("false")) {
+                    if (!ConfigData.isAllowSnapshotUpdates()) {
+                        playerManagerAPI.sendMessage("<red>Allow Snapshot Updates is already Deactivated :(");
+                    } else {
+                        ConfigData.setAllowSnapshotUpdates(false);
+                        playerManagerAPI.sendMessage("<red>Allow Snapshot Updates Deactivated :(");
+                    }
+                } else {
+                    playerManagerAPI.sendMessage("<red>" + arg2 + " is not a valid input!");
+                    playerManagerAPI.sendMessage("<green> Use 'true' or 'false' as argument!");
+                }
             } else {
                 playerManagerAPI.sendMessage("<red>" + arg1 + " is not a valid input for 2 arguments!");
             }
@@ -88,25 +115,67 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
     }
 
     private void openSettingsGUI(Player player, InventoryGUIAPI guiApi, ItemBuilderAPI itemBuilderAPI) {
+        boolean autoupdateStatus = ConfigData.getAutoUpdateStatus();
+        Material autoUpdateButtonMaterial = Material.WATER_BUCKET;
+        String autoUpdateButtonDispayNameString = "<rainbow>Auto Update: <green>";
+        if (!autoupdateStatus) {
+            autoUpdateButtonMaterial = Material.BUCKET;
+            autoUpdateButtonDispayNameString = "<rainbow>Auto Update: <red>";
+        }
         GUIButton autoUpdateButton = guiApi.createButton(
-                itemBuilderAPI.builder(Material.WATER_BUCKET)
-                        .setDisplayName("<red>Auto Update: <white>" + ConfigData.getAutoUpdateStatus()),
+                itemBuilderAPI.builder(autoUpdateButtonMaterial)
+                        .setDisplayName(autoUpdateButtonDispayNameString + autoupdateStatus),
                 "toggleAutoUpdate",
                 e -> {
                     if (e.getInventory().getHolder() instanceof InventoryGUI gui) {
                         ConfigData.toggleAutoUpdateStatus();
                         GUIButton button = gui.getButtonWithID("toggleAutoUpdate");
+                        boolean autoupdateStatus2 = ConfigData.getAutoUpdateStatus();
                         if (button != null) {
-                            button.setItemBuilder(button.getItemBuilder().setDisplayName("<red>Auto Update: <white>" + ConfigData.getAutoUpdateStatus()));
+                            if (autoupdateStatus2) {
+                                button.setItemBuilder(button.getItemBuilder().setDisplayName("<rainbow>Auto Update: <green>" + autoupdateStatus2).changeMaterial(Material.WATER_BUCKET));
+                            } else {
+                                button.setItemBuilder(button.getItemBuilder().setDisplayName("<rainbow>Auto Update: <red>" + autoupdateStatus2).changeMaterial(Material.BUCKET));
+                            }
                             gui.updateSlot(e.getRawSlot());
                         }
                     }
                 }
         );
 
+        boolean isAllowSnapshotUpdates = ConfigData.isAllowSnapshotUpdates();
+        Material allowSnapshotUpdatesButtonMaterial = Material.TORCH;
+        String allowSnapshotUpdatesButtonDisplayNameString = "<red>Allow Snapshot Updates: <red>false";
+        if (isAllowSnapshotUpdates) {
+            allowSnapshotUpdatesButtonMaterial = Material.REDSTONE_TORCH;
+            allowSnapshotUpdatesButtonDisplayNameString = "<red>Allow Snapshot Updates: <green>true";
+        }
+        GUIButton allowSnapshotUpdatesButton = guiApi.createButton(itemBuilderAPI.builder(allowSnapshotUpdatesButtonMaterial)
+                .setDisplayName(allowSnapshotUpdatesButtonDisplayNameString).lore(API.getItemsManager().getNewItemLore()
+                        .add("Applies only if Auto Update is enabled")
+                        .space()
+                        .add("Warning: Snapshots may be unstable and/or contain bugs!")), "toggleAllowSnapshotUpdates",
+                e -> {
+                    if (e.getInventory().getHolder() instanceof InventoryGUI gui) {
+                        ConfigData.toggleAllowSnapshotUpdates();
+                        GUIButton button = gui.getButtonWithID("toggleAllowSnapshotUpdates");
+                        boolean isAllowSnapshotUpdates2 = ConfigData.isAllowSnapshotUpdates();
+                        if (button != null) {
+                            if (isAllowSnapshotUpdates2) {
+                                button.setItemBuilder(button.getItemBuilder().setDisplayName("<red>Allow Snapshot Updates: <green>true").changeMaterial(Material.REDSTONE_TORCH));
+                            } else {
+                                button.setItemBuilder(button.getItemBuilder().setDisplayName("<red>Allow Snapshot Updates: <red>false").changeMaterial(Material.TORCH));
+                            }
+                            gui.updateSlot(e.getRawSlot());
+                        }
+                    }
+
+        });
+
         guiApi.createGUI(1, "<red>Settings")
                 .setButton(0, autoUpdateButton)
-                //.fillEmptySlots(itemBuilderAPI.builder(Material.GRAY_STAINED_GLASS_PANE).setDisplayName(" "), "placeholder")
+                .setButton(1, allowSnapshotUpdatesButton)
+                .fillEmptySlots(itemBuilderAPI.builder(Material.GRAY_STAINED_GLASS_PANE).setDisplayName(" "), "placeholder")
                 .open(player);
     }
 
@@ -117,9 +186,17 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
             list.add("toggleAutoUpdate");
             list.add("setAutoUpdate");
             list.add("reloadConfig");
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("setAutoUpdate")) {
-            list.add("true");
-            list.add("false");
+            list.add("toggleAllowSnapshotUpdates");
+            list.add("setAllowSnapshotUpdates");
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("setAutoUpdate")) {
+                list.add("true");
+                list.add("false");
+            } else if (args[0].equalsIgnoreCase("setAllowSnapshotUpdates")) {
+                list.add("true");
+                list.add("false");
+            }
+
         }
         return StringUtil.copyPartialMatches(args[args.length - 1], list, new ArrayList<>());
     }

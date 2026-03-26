@@ -27,26 +27,30 @@ import java.util.function.Consumer;
  */
 public class ItemBuilder {
 
-    private final ItemStack itemStack;
-    private final ItemMeta itemMeta;
+    private ItemStack itemStack;
+    private ItemMeta itemMeta;
     private int amount = 1;
     private int customModelDataLegacy = -1;
     private float customModelData = -1;
     private String item_tag;
+    private String displayName = null;
+    private List<Component> itemLore = new ArrayList<>();
     private List<String> item_tag_list = new ArrayList<>();
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     public ItemBuilder(@NotNull Material material) {
+        if (material == Material.AIR) material = Material.STONE;
         this.itemStack = new ItemStack(material);
         this.itemMeta = itemStack.getItemMeta();
     }
 
     public ItemBuilder(@NotNull ItemStack itemStack) {
+        if (itemStack.getType() == Material.AIR) itemStack = new ItemStack(Material.STONE);
         this.itemStack = itemStack.clone();
         this.itemMeta = this.itemStack.getItemMeta();
     }
 
-    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list, int amount) {
+    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list, int amount, String displayName, List<Component> itemLore) {
         this.itemStack = itemStack.clone();
         this.itemMeta = this.itemStack.getItemMeta().clone();
         if (customModelDataint == -1 && customModelDatafloat != -1) {
@@ -67,6 +71,14 @@ public class ItemBuilder {
 
         this.amount = amount;
 
+        if (displayName != null) {
+            this.displayName = displayName;
+        }
+
+        if (itemLore != null && !itemLore.isEmpty()) {
+            this.itemLore = itemLore;
+        }
+
     }
 
     /**
@@ -79,7 +91,7 @@ public class ItemBuilder {
      * @return A new ItemBuilder instance with identical data.
      */
     public @NotNull ItemBuilder copy() {
-        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list, amount);
+        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list, amount, displayName, itemLore);
     }
 
     /**
@@ -101,9 +113,7 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance.
      */
     public ItemBuilder setDisplayName(@NotNull String displayName) {
-        if (itemMeta != null) {
-            itemMeta.displayName(MM.deserialize(displayName).decoration(TextDecoration.ITALIC, false));
-        }
+        this.displayName = displayName;
         return this;
     }
 
@@ -114,16 +124,14 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance.
      */
     public ItemBuilder lore(@NotNull ItemLore itemLore) {
-        if (itemMeta != null) {
-            List<Component> lore_list = itemLore.build();
-            List<Component> finalLore = new ArrayList<>();
-            for (Component lore : lore_list) {
-                lore = lore.decoration(TextDecoration.ITALIC, false);
-                finalLore.add(lore);
-            }
-
-            itemMeta.lore(finalLore);
+        List<Component> lore_list = itemLore.build();
+        List<Component> finalLore = new ArrayList<>();
+        for (Component lore : lore_list) {
+            lore = lore.decoration(TextDecoration.ITALIC, false);
+            finalLore.add(lore);
         }
+
+        this.itemLore = finalLore;
         return this;
     }
 
@@ -138,15 +146,13 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance;
      */
     public ItemBuilder lore(@NotNull List<Component> components) {
-        if (itemMeta != null) {
-            List<Component> finalLore = new ArrayList<>();
-            for (Component lore : components) {
-                lore = lore.decoration(TextDecoration.ITALIC, false);
-                finalLore.add(lore);
-            }
-
-            itemMeta.lore(finalLore);
+        List<Component> finalLore = new ArrayList<>();
+        for (Component lore : components) {
+            lore = lore.decoration(TextDecoration.ITALIC, false);
+            finalLore.add(lore);
         }
+
+        this.itemLore = finalLore;
         return this;
     }
 
@@ -289,26 +295,109 @@ public class ItemBuilder {
     }
 
     /**
+     * Changes the underlying base {@link ItemStack} of this builder to a clone of the provided item.
+     * <p>
+     * <b>Important Behavior regarding Builder State:</b>
+     * This method replaces the base item and its inherent {@link ItemMeta}.
+     * <br><b>The following properties WILL BE OVERWRITTEN (lost)</b> if they were set prior to this call,
+     * as they modify the underlying ItemMeta directly:
+     * <ul>
+     * <li>Enchantments added via {@link #enchant(Enchantment, int, boolean)}</li>
+     * <li>ItemFlags added via {@link #flags(ItemFlag...)}</li>
+     * <li>Unbreakable state set via {@link #unbreakable(boolean)}</li>
+     * <li>Custom meta edits done via {@link #editMeta(Class, Consumer)}</li>
+     * </ul>
+     * <br><b>The following properties ARE PRESERVED</b> and will be applied to the new item upon {@link #build()}:
+     * <ul>
+     * <li>Item amount {@link #setAmount(int)}</li>
+     * <li>Display name {@link #setDisplayName(String)}</li>
+     * <li>Lore {@link #lore(List)} or {@link #lore(ItemLore)}</li>
+     * <li>Custom Model Data (modern & legacy) {@link #setCustomModelData(float)}</li>
+     * <li>Item Tags {@link #addItemTag(String)}</li>
+     * </ul>
+     * </p>
+     *
+     * @param itemStack The new {@link ItemStack} to base this builder on. Must not be null.
+     * @return The current {@link ItemBuilder} instance for chaining.
+     */
+    public ItemBuilder changeItemStack(@NotNull ItemStack itemStack) {
+        if (itemStack.getType() == Material.AIR) return this;
+        this.itemStack = itemStack.clone();
+        ItemMeta meta = this.itemStack.getItemMeta();
+        this.itemMeta = (meta != null) ? meta.clone() : null;
+
+        return this;
+    }
+
+    /**
+     * Changes the underlying base material of this builder by creating a new {@link ItemStack}.
+     * <p>
+     * <b>Important Behavior regarding Builder State:</b>
+     * This method replaces the base item and its inherent {@link ItemMeta}.
+     * <br><b>The following properties WILL BE OVERWRITTEN (lost)</b> if they were set prior to this call,
+     * as they modify the underlying ItemMeta directly:
+     * <ul>
+     * <li>Enchantments added via {@link #enchant(Enchantment, int, boolean)}</li>
+     * <li>ItemFlags added via {@link #flags(ItemFlag...)}</li>
+     * <li>Unbreakable state set via {@link #unbreakable(boolean)}</li>
+     * <li>Custom meta edits done via {@link #editMeta(Class, Consumer)}</li>
+     * </ul>
+     * <br><b>The following properties ARE PRESERVED</b> and will be applied to the new item upon {@link #build()}:
+     * <ul>
+     * <li>Item amount {@link #setAmount(int)}</li>
+     * <li>Display name {@link #setDisplayName(String)}</li>
+     * <li>Lore {@link #lore(List)} or {@link #lore(ItemLore)}</li>
+     * <li>Custom Model Data (modern & legacy) {@link #setCustomModelData(float)}</li>
+     * <li>Item Tags {@link #addItemTag(String)}</li>
+     * </ul>
+     * </p>
+     *
+     * @param material The {@link Material} to create the new base item from. Must not be null.
+     * @return The current {@link ItemBuilder} instance for chaining.
+     */
+    public ItemBuilder changeMaterial(@NotNull Material material) {
+        if (material == Material.AIR) return this;
+        if (this.itemStack.getType() == material) return this;
+        this.itemStack = new ItemStack(material);
+        ItemMeta meta = this.itemStack.getItemMeta();
+        this.itemMeta = (meta != null) ? meta.clone() : null;
+
+        return this;
+    }
+
+    /**
      * Builds the final ItemStack.
      *
      * @return The finished {@link ItemStack}.
      */
     public @NotNull ItemStack build() {
         ItemStack buildItemStack = itemStack.clone();
-        ItemMeta buildItemMeta = itemMeta.clone();
+        ItemMeta buildItemMeta = (itemMeta != null) ? itemMeta.clone() : null;
         List<String> build_item_tag_list = new ArrayList<>(item_tag_list);
-        if (customModelData != -1) {
-            buildItemStack.setItemMeta(buildItemMeta);
-            if (!buildItemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
-                buildItemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
+
+        if (buildItemMeta != null) {
+            if (this.displayName != null) {
+                buildItemMeta.displayName(MM.deserialize(this.displayName).decoration(TextDecoration.ITALIC, false));
             }
-        } else if (customModelDataLegacy != -1) {
-            if (!buildItemMeta.hasCustomModelData()) {
-                buildItemMeta.setCustomModelData(customModelDataLegacy);
+
+            if (!this.itemLore.isEmpty()) {
+                buildItemMeta.lore(this.itemLore);
             }
-            buildItemStack.setItemMeta(buildItemMeta);
-        } else {
-            buildItemStack.setItemMeta(buildItemMeta);
+
+
+            if (customModelData != -1) {
+                buildItemStack.setItemMeta(buildItemMeta);
+                if (!buildItemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
+                    buildItemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
+                }
+            } else if (customModelDataLegacy != -1) {
+                if (!buildItemMeta.hasCustomModelData()) {
+                    buildItemMeta.setCustomModelData(customModelDataLegacy);
+                }
+                buildItemStack.setItemMeta(buildItemMeta);
+            } else {
+                buildItemStack.setItemMeta(buildItemMeta);
+            }
         }
 
         if (item_tag != null) {
@@ -332,8 +421,9 @@ public class ItemBuilder {
 
     private @NotNull ItemStack buildWithoutData() {
         ItemStack buildItemStack = itemStack.clone();
-        ItemMeta buildItemMeta = itemMeta.clone();
-        buildItemStack.setItemMeta(buildItemMeta);
+        if (itemMeta != null) {
+            buildItemStack.setItemMeta(itemMeta.clone());
+        }
 
         return buildItemStack;
     }
