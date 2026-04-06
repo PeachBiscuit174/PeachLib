@@ -10,18 +10,19 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class ItemTag {
     private static final Plugin plugin = PeachLib.getPlugin();
-    private static final Map<String, NamespacedKey> keyCache = new ConcurrentHashMap<>();
+
 
     private static NamespacedKey getKey(String key) {
-        return keyCache.computeIfAbsent(key, k ->
-                new NamespacedKey(plugin, k.toLowerCase().replace(" ", "_"))
-        );
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("Key must not be null or empty");
+        }
+        // Normalization during creation
+        String normalizedKey = key.toLowerCase().replace(" ", "_");
+        return new NamespacedKey(plugin, normalizedKey);
     }
 
     public static ItemStack setItemTag (ItemStack itemStack, String key) {
