@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -33,7 +34,6 @@ public class GUIListener implements Listener {
                 event.setCancelled(true);
             }
 
-
             if (!gui.canItemsPlacedInGUI()) {
                 if (clickedInv.equals(event.getView().getTopInventory())) {
                     event.setCancelled(true);
@@ -50,7 +50,6 @@ public class GUIListener implements Listener {
                 if (actionID != null) {
                     GUIButton button = gui.getButtonWithID(actionID);
                     if (button != null) {
-
 
                         if (button.isGiveToPlayerOnClick()) {
                             ItemStack cleanItem = button.getItemBuilder().build();
@@ -70,10 +69,21 @@ public class GUIListener implements Listener {
             return;
         }
 
-        for (int rawSlot : event.getRawSlots()) {
-            if (rawSlot < event.getInventory().getSize()) {
-                event.setCancelled(true);
-                break;
+        if (!gui.canItemsPlacedInGUI()) {
+            for (int rawSlot : event.getRawSlots()) {
+                if (rawSlot < event.getInventory().getSize()) {
+                    event.setCancelled(true);
+                    break;
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (event.getInventory().getHolder() instanceof InventoryGUI gui) {
+            if (gui.getOnCloseAction() != null) {
+                gui.getOnCloseAction().accept(event);
             }
         }
     }

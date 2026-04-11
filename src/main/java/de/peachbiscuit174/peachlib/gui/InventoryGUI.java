@@ -5,15 +5,19 @@ import de.peachbiscuit174.peachlib.items.ItemTag;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A highly flexible GUI API for Paper plugins.
@@ -24,7 +28,7 @@ import java.util.Map;
  * </p>
  * * <p><b>Example Usage:</b></p>
  * <pre>
- * InventoryGUI gui = new InventoryGUI(3, "&lt;gold&gt;Settings");
+ * InventoryGUI gui = new InventoryGUI(3, "<gold>Settings");
  * gui.setButton(13, new GUIButton(new ItemBuilder(Material.DIAMOND), "save", event -> {
  * event.getWhoClicked().sendMessage("Saved!");
  * }));
@@ -43,6 +47,9 @@ public class InventoryGUI implements InventoryHolder {
     private String[] shape;
     private final Map<Character, GUIButton> charMapping = new HashMap<>();
     private boolean canItemsPlacedInGUI = false;
+
+    // NEU: Die Aktion, die beim Schließen ausgeführt werden soll
+    private Consumer<InventoryCloseEvent> onCloseAction = null;
 
     /**
      * The tag key used to identify items that should not be removed from the GUI.
@@ -70,11 +77,8 @@ public class InventoryGUI implements InventoryHolder {
      * @return The current instance for fluent chaining.
      */
     public InventoryGUI setButton(int slot, @NotNull GUIButton button) {
-
         slotMap.put(slot, button);
-
         idMap.put(button.getActionId(), button);
-
         updateSlot(slot);
         return this;
     }
@@ -268,6 +272,38 @@ public class InventoryGUI implements InventoryHolder {
      */
     public boolean canItemsPlacedInGUI() {
         return canItemsPlacedInGUI;
+    }
+
+    /**
+     * Sets an action to be executed when the GUI is closed.
+     * * @param onCloseAction The action to execute on close.
+     * @return The current instance for fluent chaining.
+     */
+    public InventoryGUI setOnClose(Consumer<InventoryCloseEvent> onCloseAction) {
+        this.onCloseAction = onCloseAction;
+        return this;
+    }
+
+    public Consumer<InventoryCloseEvent> getOnCloseAction() {
+        return onCloseAction;
+    }
+
+    /**
+     * Retrieves all items that were placed by the player into the GUI.
+     * It filters out all GUI buttons by checking for the protected tag.
+     * * @return A list of ItemStacks that the player placed in the GUI.
+     */
+    public List<ItemStack> getPlayerPlacedItems() {
+        List<ItemStack> placedItems = new ArrayList<>();
+        for (ItemStack item : inventory.getContents()) {
+            if (item != null && !item.getType().isAir()) {
+                // Wenn das Item NICHT den PROTECTED_TAG hat, ist es vom Spieler
+                if (!ItemTag.isItemTag(item, PROTECTED_TAG)) {
+                    placedItems.add(item.clone());
+                }
+            }
+        }
+        return placedItems;
     }
 
     /**

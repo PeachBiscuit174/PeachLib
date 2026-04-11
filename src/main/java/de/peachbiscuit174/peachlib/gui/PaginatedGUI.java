@@ -1,14 +1,20 @@
 package de.peachbiscuit174.peachlib.gui;
 
+import de.peachbiscuit174.peachlib.api.API;
 import de.peachbiscuit174.peachlib.items.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * A flexible system for multi-page inventories.
@@ -36,6 +42,12 @@ public class PaginatedGUI {
     private ItemBuilder prevIcon = new ItemBuilder(Material.ARROW).setDisplayName("<yellow>« Previous Page");
     private ItemBuilder closeIcon = new ItemBuilder(Material.BARRIER).setDisplayName("<red>Close");
     private ItemBuilder backgroundIcon = new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setDisplayName(" ");
+
+    private boolean canItemsPlacedInGUI = false;
+    private BiConsumer<InventoryCloseEvent, List<ItemStack>> onCloseAction = null;
+    private BiConsumer<Integer, List<ItemStack>> onPageSwitchAction = null;
+    private final Map<Integer, Consumer<List<ItemStack>>> specificPageActions = new HashMap<>();
+    private final Map<UUID, Boolean> pageSwitching = new HashMap<>();
 
     /**
      * Creates a new PaginatedGUI.
@@ -164,6 +176,59 @@ public class PaginatedGUI {
         return this;
     }
 
+    /**
+     * Sets whether players are allowed to place their own items into the GUI.
+     *
+     * @param value {@code true} to allow item placement, {@code false} to deny it.
+     * @return The current instance for chaining.
+     */
+    public PaginatedGUI setCanItemsPlacedInGUI(boolean value) {
+        this.canItemsPlacedInGUI = value;
+        return this;
+    }
+
+    /**
+     * Sets the action to be executed when the player completely closes the GUI.
+     * <p>
+     * Note: This event is only fired upon a real close (e.g., pressing ESC or using a close button).
+     * It does not fire when a player switches between pages.
+     * </p>
+     *
+     * @param onCloseAction A {@link BiConsumer} providing the {@link InventoryCloseEvent} and a List of {@link ItemStack}s placed by the player.
+     * @return The current instance for chaining.
+     */
+    public PaginatedGUI setOnClose(BiConsumer<InventoryCloseEvent, List<ItemStack>> onCloseAction) {
+        this.onCloseAction = onCloseAction;
+        return this;
+    }
+
+    /**
+     * Sets a general action to execute whenever the player switches away from ANY page.
+     *
+     * @param onPageSwitchAction A {@link BiConsumer} providing the page number (0-indexed) the player is leaving,
+     * and a List of {@link ItemStack}s placed on that page.
+     * @return The current instance for chaining.
+     */
+    public PaginatedGUI setOnPageSwitch(BiConsumer<Integer, List<ItemStack>> onPageSwitchAction) {
+        this.onPageSwitchAction = onPageSwitchAction;
+        return this;
+    }
+
+    /**
+     * Sets a specific action to execute when the player switches away from a SPECIFIC page.
+     * <p>
+     * This action has priority and will override the general {@link #setOnPageSwitch} action for this specific page.
+     * </p>
+     *
+     * @param page   The page number (0-indexed) this action applies to.
+     * @param action A {@link Consumer} providing the List of {@link ItemStack}s placed on this page.
+     * @return The current instance for chaining.
+     */
+    public PaginatedGUI setPageAction(int page, Consumer<List<ItemStack>> action) {
+        this.specificPageActions.put(page, action);
+        return this;
+    }
+
     // --- Logic ---
 
     /**
@@ -185,16 +250,45 @@ public class PaginatedGUI {
         int totalItems = contentButtons.size();
         int totalPages = (int) Math.ceil((double) totalItems / slotsPerPage);
 
-        // Safety checks for page bounds
         if (page < 0) page = 0;
         if (page >= totalPages && totalPages > 0) page = totalPages - 1;
 
+        final int currentPage = page;
+
         // Title format: "Title (1/5)"
-        String pageTitle = title + " <dark_gray>(" + (page + 1) + "/" + Math.max(1, totalPages) + ")";
+        String pageTitle = title + " <dark_gray>(" + (currentPage + 1) + "/" + Math.max(1, totalPages) + ")";
         InventoryGUI gui = new InventoryGUI(rows, pageTitle);
 
+        gui.setCanItemsPlacedInGUI(this.canItemsPlacedInGUI);
+
+        gui.setOnClose(event -> {
+            boolean isSwitching = pageSwitching.getOrDefault(player.getUniqueId(), false);
+            List<ItemStack> placedItems = gui.getPlayerPlacedItems();
+
+            if (isSwitching) {
+                if (specificPageActions.containsKey(currentPage)) {
+                    specificPageActions.get(currentPage).accept(placedItems);
+                } else if (onPageSwitchAction != null) {
+                    onPageSwitchAction.accept(currentPage, placedItems);
+                } else {
+                    for (ItemStack item : placedItems) {
+                        API.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
+                    }
+                }
+            } else {
+                if (this.onCloseAction != null) {
+                    this.onCloseAction.accept(event, placedItems);
+                } else {
+                    for (ItemStack item : placedItems) {
+                        API.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
+                    }
+                }
+                pageSwitching.remove(player.getUniqueId());
+            }
+        });
+
         // 1. Fill Content
-        int startIndex = page * slotsPerPage;
+        int startIndex = currentPage * slotsPerPage;
         int endIndex = Math.min(startIndex + slotsPerPage, totalItems);
 
         for (int i = startIndex; i < endIndex; i++) {
@@ -218,19 +312,22 @@ public class PaginatedGUI {
         }
 
         // Step C: Navigation (Override Custom Buttons & Background where necessary)
-        final int finalPage = page;
 
         // "Previous" Button
-        if (prevSlot >= 0 && page > 0) {
+        if (prevSlot >= 0 && currentPage > 0) {
             gui.setButton(toolbarStartIdx + prevSlot, new GUIButton(prevIcon.copy(), "prev_page", event -> {
-                this.open(player, finalPage - 1);
+                pageSwitching.put(player.getUniqueId(), true);
+                this.open(player, currentPage - 1);
+                pageSwitching.put(player.getUniqueId(), false);
             }));
         }
 
         // "Next" Button
-        if (nextSlot >= 0 && page < totalPages - 1) {
+        if (nextSlot >= 0 && currentPage < totalPages - 1) {
             gui.setButton(toolbarStartIdx + nextSlot, new GUIButton(nextIcon.copy(), "next_page", event -> {
-                this.open(player, finalPage + 1);
+                pageSwitching.put(player.getUniqueId(), true);
+                this.open(player, currentPage + 1);
+                pageSwitching.put(player.getUniqueId(), false);
             }));
         }
 

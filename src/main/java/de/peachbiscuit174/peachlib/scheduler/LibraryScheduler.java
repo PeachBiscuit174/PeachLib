@@ -86,7 +86,7 @@ public class LibraryScheduler {
             private final AtomicInteger counter = new AtomicInteger(1);
             @Override
             public Thread newThread(@NotNull Runnable r) {
-                return new Thread(r, "PPL-Async-" + counter.getAndIncrement());
+                return new Thread(r, "PL-Async-" + counter.getAndIncrement());
             }
         };
 
@@ -245,7 +245,7 @@ public class LibraryScheduler {
             try {
                 task.run();
             } catch (Exception e) {
-                libraryOwner.getLogger().severe("Error in PPL Sync Task: " + e.getMessage());
+                libraryOwner.getLogger().severe("Error in PL Sync Task: " + e.getMessage());
                 e.printStackTrace();
             }
 
@@ -254,7 +254,7 @@ public class LibraryScheduler {
                 // Log warning only if we are significantly overloaded (> 1000 tasks pending)
                 // or if we are in shutdown mode (budget > 1s implies shutdown or heavy op)
                 if (syncQueue.size() > 1000 || maxBudgetNanos > 1_000_000_000L) {
-                    libraryOwner.getLogger().warning("PPL Sync Queue budget exceeded! Stopped processing. Pending: " + syncQueue.size());
+                    libraryOwner.getLogger().warning("PL Sync Queue budget exceeded! Stopped processing. Pending: " + syncQueue.size());
                 }
                 break;
             }
