@@ -1,6 +1,6 @@
 package de.peachbiscuit174.peachlib.api.files;
 
-import de.peachbiscuit174.peachlib.api.API;
+import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import de.peachbiscuit174.peachlib.files.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Boolean> deleteRecursivelyAsync(@NotNull Path path) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.deleteRecursively(path);
                 future.complete(true);
@@ -45,7 +45,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Path> copyRecursivelyAsync(@NotNull Path source, @NotNull Path destination) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.copyRecursively(source, destination);
                 future.complete(destination);
@@ -64,7 +64,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Long> calculateSizeAsync(@NotNull Path path) {
         CompletableFuture<Long> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 long size = FileUtil.calculateSize(path);
                 future.complete(size);
@@ -85,7 +85,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Boolean> writeStringAtomicallyAsync(@NotNull Path destination, @NotNull String content) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.writeStringAtomically(destination, content);
                 future.complete(true);
@@ -105,7 +105,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<String> readStringAsync(@NotNull Path source) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 String content = FileUtil.readString(source);
                 future.complete(content);
@@ -137,7 +137,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Path> downloadFileWithProgressAsync(@NotNull String url, @NotNull Path destination, @NotNull DoubleConsumer progressCallback) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.downloadFileWithProgress(url, destination, progressCallback);
                 future.complete(destination);
@@ -156,7 +156,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<String> calculateSha256Async(@NotNull Path file) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 String hash = FileUtil.calculateHash(file, "SHA-256");
                 future.complete(hash);
@@ -177,7 +177,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Boolean> cleanOldBackupsAsync(@NotNull Path directory, @NotNull String prefix, int maxKeep) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.cleanOldBackups(directory, prefix, maxKeep);
                 future.complete(true);
@@ -198,7 +198,7 @@ public class FileUtilAPI {
      */
     public CompletableFuture<Boolean> appendLogAsync(@NotNull Path logFile, @NotNull String message) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileUtil.appendToLog(logFile, message);
                 future.complete(true);

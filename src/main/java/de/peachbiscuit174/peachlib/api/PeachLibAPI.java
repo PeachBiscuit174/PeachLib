@@ -1,9 +1,6 @@
 package de.peachbiscuit174.peachlib.api;
 
-import de.peachbiscuit174.peachlib.api.managers.GUIManager;
-import de.peachbiscuit174.peachlib.api.managers.ItemsManager;
-import de.peachbiscuit174.peachlib.api.managers.PlayerManager;
-import de.peachbiscuit174.peachlib.api.managers.SchedulerManager;
+import de.peachbiscuit174.peachlib.api.managers.*;
 
 import java.util.Arrays;
 
@@ -14,14 +11,15 @@ import java.util.Arrays;
  * @author peachbiscuit174
  * @since 1.0.0
  */
-@Deprecated
-public class API {
+public class PeachLibAPI {
+
 
     // --- Managers ---
     private static final ItemsManager itemsManager = new ItemsManager();
     private static final SchedulerManager schedulerManager = new SchedulerManager();
     private static final PlayerManager playerManager = new PlayerManager();
     private static final GUIManager guiManager = new GUIManager();
+    private static final FileManager fileManager = new FileManager();
 
     // --- Versioning ---
     private static final String API_VERSION = "v1.0.0";
@@ -112,5 +110,9 @@ public class API {
 
     public static GUIManager getGUIManager() {
         return guiManager;
+    }
+
+    public static FileManager getFileManager() {
+        return fileManager;
     }
 }

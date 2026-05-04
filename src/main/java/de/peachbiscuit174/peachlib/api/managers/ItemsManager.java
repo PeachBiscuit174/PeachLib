@@ -3,6 +3,7 @@ package de.peachbiscuit174.peachlib.api.managers;
 import de.peachbiscuit174.peachlib.api.items.CustomHeadsAPI;
 import de.peachbiscuit174.peachlib.api.items.ItemBuilderAPI;
 import de.peachbiscuit174.peachlib.api.items.ItemSerializerAPI;
+import de.peachbiscuit174.peachlib.api.items.ItemTagAPI;
 import de.peachbiscuit174.peachlib.items.ItemLore;
 
 /**
@@ -28,5 +29,10 @@ public class ItemsManager {
     private final ItemSerializerAPI itemSerializerAPI = new ItemSerializerAPI();
     public ItemSerializerAPI getItemSerializerAPI() {
         return itemSerializerAPI;
+    }
+
+    private final ItemTagAPI itemTagAPI = new ItemTagAPI();
+    public ItemTagAPI getItemTagAPI() {
+        return itemTagAPI;
     }
 }

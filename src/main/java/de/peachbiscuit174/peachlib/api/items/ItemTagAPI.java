@@ -5,7 +5,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author peachbiscuit174
+ * API for managing PersistentDataContainer tags on ItemStacks.
+ * * @author peachbiscuit174
  * @since 1.0.0
  */
 public class ItemTagAPI {
@@ -21,7 +22,7 @@ public class ItemTagAPI {
      * @param item_tag_key The unique string identifier to set as a tag.
      * @return The modified {@link ItemStack} containing the new tag.
      */
-    public static ItemStack setItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+    public ItemStack setItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
         return ItemTag.setItemTag(itemStack, item_tag_key);
     }
 
@@ -32,7 +33,7 @@ public class ItemTagAPI {
      * @param item_tag_key The tag key to look for.
      * @return {@code true} if the item has the specified tag; {@code false} otherwise.
      */
-    public static boolean hasItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+    public boolean hasItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
         return ItemTag.isItemTag(itemStack, item_tag_key);
     }
 
@@ -46,21 +47,19 @@ public class ItemTagAPI {
      * @param item_tag_key The tag key to be deleted.
      * @return The {@link ItemStack} without the specified tag.
      */
-    public static ItemStack removeItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+    public ItemStack removeItemTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
         return ItemTag.removeItemTag(itemStack, item_tag_key);
     }
 
-    public static ItemStack setItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key, @NotNull String value) {
+    public ItemStack setItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key, @NotNull String value) {
         return ItemTag.setItemStringTag(itemStack, item_tag_key, value);
     }
 
-    public static boolean isItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+    public boolean isItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
         return ItemTag.isItemStringTag(itemStack, item_tag_key);
     }
 
-    public static String getItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
+    public String getItemStringTag(@NotNull ItemStack itemStack, @NotNull String item_tag_key) {
         return ItemTag.getItemStringTag(itemStack, item_tag_key);
     }
-
-
 }

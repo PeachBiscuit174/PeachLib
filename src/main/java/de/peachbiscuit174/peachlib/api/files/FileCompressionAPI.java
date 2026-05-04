@@ -1,6 +1,6 @@
 package de.peachbiscuit174.peachlib.api.files;
 
-import de.peachbiscuit174.peachlib.api.API;
+import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import de.peachbiscuit174.peachlib.files.FileCompressor;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public class FileCompressionAPI {
      */
     public CompletableFuture<Path> compressSingleFileAsync(@NotNull Path source, @NotNull Path destination) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileCompressor.compress(source, destination);
                 future.complete(destination);
@@ -47,7 +47,7 @@ public class FileCompressionAPI {
      */
     public CompletableFuture<Path> decompressSingleFileAsync(@NotNull Path source, @NotNull Path destination) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileCompressor.decompress(source, destination);
                 future.complete(destination);
@@ -94,7 +94,7 @@ public class FileCompressionAPI {
      */
     public CompletableFuture<Path> zipDirectoryWithProgressAsync(@NotNull Path sourceDirectory, @NotNull Path targetZipFile, @NotNull Predicate<Path> filter, @NotNull DoubleConsumer progressCallback) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileCompressor.zipDirectoryWithProgress(sourceDirectory, targetZipFile, filter, progressCallback);
                 future.complete(targetZipFile);
@@ -115,7 +115,7 @@ public class FileCompressionAPI {
      */
     public CompletableFuture<Path> unzipSecurelyAsync(@NotNull Path zipFile, @NotNull Path targetDirectory) {
         CompletableFuture<Path> future = new CompletableFuture<>();
-        API.getSchedulerManager().getScheduler().runAsync(() -> {
+        PeachLibAPI.getSchedulerManager().getScheduler().runAsync(() -> {
             try {
                 FileCompressor.unzipSecurely(zipFile, targetDirectory);
                 future.complete(targetDirectory);

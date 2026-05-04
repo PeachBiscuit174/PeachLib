@@ -1,6 +1,6 @@
 package de.peachbiscuit174.peachlib.Commands;
 
-import de.peachbiscuit174.peachlib.api.API;
+import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import de.peachbiscuit174.peachlib.api.gui.InventoryGUIAPI;
 import de.peachbiscuit174.peachlib.api.items.ItemBuilderAPI;
 import de.peachbiscuit174.peachlib.api.player.PlayerManagerAPI;
@@ -29,9 +29,9 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        InventoryGUIAPI guiApi = API.getGUIManager().getInventoryGUIAPI();
-        ItemBuilderAPI itemBuilderAPI = API.getItemsManager().getNewItemBuilderAPI();
-        PlayerManagerAPI playerManagerAPI = API.getPlayerManager().getPlayerManagerAPI(player);
+        InventoryGUIAPI guiApi = PeachLibAPI.getGUIManager().getInventoryGUIAPI();
+        ItemBuilderAPI itemBuilderAPI = PeachLibAPI.getItemsManager().getNewItemBuilderAPI();
+        PlayerManagerAPI playerManagerAPI = PeachLibAPI.getPlayerManager().getPlayerManagerAPI(player);
 
         if (args.length == 0) {
             openSettingsGUI(player, guiApi, itemBuilderAPI);
@@ -151,7 +151,7 @@ public class PeachLibSettings implements CommandExecutor, TabCompleter {
             allowSnapshotUpdatesButtonDisplayNameString = "<red>Allow Snapshot Updates: <green>true";
         }
         GUIButton allowSnapshotUpdatesButton = guiApi.createButton(itemBuilderAPI.builder(allowSnapshotUpdatesButtonMaterial)
-                .setDisplayName(allowSnapshotUpdatesButtonDisplayNameString).lore(API.getItemsManager().getNewItemLore()
+                .setDisplayName(allowSnapshotUpdatesButtonDisplayNameString).lore(PeachLibAPI.getItemsManager().getNewItemLore()
                         .add("Applies only if Auto Update is enabled")
                         .space()
                         .add("Warning: Snapshots may be unstable and/or contain bugs!")), "toggleAllowSnapshotUpdates",

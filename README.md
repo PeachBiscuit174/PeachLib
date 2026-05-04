@@ -38,7 +38,7 @@ Add the library to your project via **JitPack**.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT22</version>
+        <version>v1.0.0-SNAPSHOT23</version>
         <scope>provided</scope>
     </dependency>
 ```
@@ -50,7 +50,7 @@ Add the library to your project via **JitPack**.
 
 ## ✨ Key Features & API
 
-- PeachLib offers a wide range of managers and APIs accessible via the central `API` class:
+- PeachLib offers a wide range of managers and APIs accessible via the central `PeachLibAPI` class:
 
     - **📦 Items Manager:**
         - **ItemBuilderAPI:** Build items with full MiniMessage support, custom model data, and ItemLore.
@@ -84,13 +84,13 @@ Add the library to your project via **JitPack**.
 **Example Usage:**
 ```java
 // Central API access point
-ItemsManager items = API.getItemsManager();
+ItemsManager items = PeachLibAPI.getItemsManager();
 
 // Create a custom head via Base64
 ItemStack head = items.getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...", "<gold>Special Head");
 
 // Open a simple GUI
-InventoryGUI gui = API.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Settings");
+InventoryGUI gui = PeachLibAPI.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Settings");
 gui.setButton(13, new GUIButton(items.getNewItemBuilderAPI().builder(Material.DIAMOND), "my_action", event -> {
     event.getWhoClicked().sendMessage("Clicked!");
 }));
@@ -208,7 +208,7 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT22</version>
+        <version>v1.0.0-SNAPSHOT23</version>
         <scope>provided</scope>
     </dependency>
 ```
@@ -220,7 +220,7 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
 
 ## ✨ Hauptfunktionen & API
 
-PeachLib bietet eine Vielzahl an Managern und APIs, die zentral über die `API` Klasse erreichbar sind:
+PeachLib bietet eine Vielzahl an Managern und APIs, die zentral über die `PeachLibAPI` Klasse erreichbar sind:
 
 - **📦 Items Manager:**
     
@@ -254,13 +254,13 @@ PeachLib bietet eine Vielzahl an Managern und APIs, die zentral über die `API` 
 **Beispiel:**
 ```java
 // Zentraler API-Zugriff
-ItemsManager items = API.getItemsManager();
+ItemsManager items = PeachLibAPI.getItemsManager();
 
 // Custom Head via Base64 erstellen
 ItemStack head = items.getCustomHeadsAPI().getCustomHead("eyJ0ZXh0dXJlcyI6...", "<gold>Special Head");
 
 // Ein simples GUI öffnen
-InventoryGUI gui = API.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Einstellungen");
+InventoryGUI gui = PeachLibAPI.getGUIManager().getInventoryGUIAPI().createGUI(3, "<red>Einstellungen");
 gui.setButton(13, new GUIButton(items.getNewItemBuilderAPI().builder(Material.DIAMOND), "my_action", event -> {
     event.getWhoClicked().sendMessage("Geklickt!");
 }));

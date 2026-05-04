@@ -1,6 +1,6 @@
 package de.peachbiscuit174.peachlib.gui;
 
-import de.peachbiscuit174.peachlib.api.API;
+import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import de.peachbiscuit174.peachlib.items.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -272,7 +272,7 @@ public class PaginatedGUI {
                     onPageSwitchAction.accept(currentPage, placedItems);
                 } else {
                     for (ItemStack item : placedItems) {
-                        API.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
+                        PeachLibAPI.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
                     }
                 }
             } else {
@@ -280,7 +280,7 @@ public class PaginatedGUI {
                     this.onCloseAction.accept(event, placedItems);
                 } else {
                     for (ItemStack item : placedItems) {
-                        API.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
+                        PeachLibAPI.getPlayerManager().getPlayerManagerAPI(player).giveOrDropItem(item);
                     }
                 }
                 pageSwitching.remove(player.getUniqueId());
