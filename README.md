@@ -2,6 +2,7 @@
 [![PeachLib](https://api.mcbanners.com/banner/resource/hangar/PeachLib/banner.png?background__template=MALACHITE_GREEN)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![PeachLib](https://img.shields.io/hangar/views/PeachLib?link=https%3A%2F%2Fhangar.papermc.io%2FPeachBiscuit174%2FPeachLib&style=flat)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![Servers](https://img.shields.io/bstats/servers/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074) [![Players](https://img.shields.io/bstats/players/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074)
+[![CodeFactor](https://www.codefactor.io/repository/github/peachbiscuit174/peachlib/badge)](https://www.codefactor.io/repository/github/peachbiscuit174/peachlib)
 
 A PaperMC Library.
 
@@ -172,6 +173,7 @@ We are grateful for any help to make **PeachLib** better! Whether it's a new fea
 [![PeachLib](https://api.mcbanners.com/banner/resource/hangar/PeachLib/banner.png?background__template=MALACHITE_GREEN)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![PeachLib](https://img.shields.io/hangar/views/PeachLib?link=https%3A%2F%2Fhangar.papermc.io%2FPeachBiscuit174%2FPeachLib&style=flat)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![Servers](https://img.shields.io/bstats/servers/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074) [![Players](https://img.shields.io/bstats/players/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074)
+[![CodeFactor](https://www.codefactor.io/repository/github/peachbiscuit174/peachlib/badge)](https://www.codefactor.io/repository/github/peachbiscuit174/peachlib)
 
 Eine PaperMC-Library.
 
