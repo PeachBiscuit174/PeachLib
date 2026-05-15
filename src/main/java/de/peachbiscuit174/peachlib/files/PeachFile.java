@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.peachbiscuit174.peachlib.PeachLib;
 import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -34,11 +35,11 @@ import java.util.concurrent.CompletableFuture;
  * This class provides a fluent and highly optimized way to interact with files in Paper/Spigot plugins.
  * It combines synchronous and asynchronous I/O operations, Bukkit YAML support, GSON object serialization,
  * resource extraction, and a built-in file watcher for auto-reloading.
- * * <p><b>Example Usage:</b>
+ * <p><b>Example Usage:</b>
  * <pre>{@code
  * PeachFile config = new PeachFile(plugin, "config.yml")
  * .extractDefault(plugin, "config.yml", false);
- * * YamlConfiguration yaml = config.getYaml();
+ * YamlConfiguration yaml = config.getYaml();
  * }</pre>
  *
  * @author peachbiscuit174
@@ -77,7 +78,7 @@ public class PeachFile {
     /**
      * Creates a new PeachFile directly inside a Bukkit plugin's data folder.
      * Automatically handles the plugin folder routing.
-     * * @param plugin The Bukkit Plugin instance.
+     * @param plugin The Bukkit Plugin instance.
      * @param relativePath The file name or relative path (e.g., "data/players.json").
      */
     public PeachFile(@NotNull Plugin plugin, @NotNull String relativePath) {
@@ -93,6 +94,10 @@ public class PeachFile {
      * <b>Important:</b> The provided action runs asynchronously. If you need to interact
      * with the Bukkit API inside the action, you must use the Bukkit Scheduler or LibraryScheduler to jump
      * back to the main thread.
+     * <p>
+     * <b>Failsafe:</b> This watcher is automatically tracked by PeachLib. While you should call
+     * {@link #stopWatching()} when the watcher is no longer needed, PeachLib will automatically
+     * shut it down during the server stop/reload phase to prevent zombie threads.
      * <p>
      * <b>Example:</b>
      * <pre>{@code
@@ -141,6 +146,8 @@ public class PeachFile {
             this.watchThread.setDaemon(true);
             this.watchThread.start();
 
+            PeachLib.registerWatchedFile(this);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,8 +155,13 @@ public class PeachFile {
 
     /**
      * Stops the file watcher and cleans up resources.
-     * <b>Must</b> be called in your plugin's {@code onDisable()} method if a watcher was started,
-     * otherwise it may cause memory leaks upon server reload.
+     * <p>
+     * It is recommended to call this method when you no longer need to track the file
+     * (e.g., when a specific player leaves or a mini-game ends).
+     * <p>
+     * If the watcher is meant to run until the server stops, you don't need to call this manually.
+     * PeachLib features an internal failsafe that automatically cleans up all active watchers
+     * in its {@code onDisable()} method, guaranteeing no memory leaks occur.
      */
     public void stopWatching() {
         try {
@@ -157,6 +169,9 @@ public class PeachFile {
             if (this.watchThread != null) this.watchThread.interrupt();
             this.watchService = null;
             this.watchThread = null;
+
+            PeachLib.unregisterWatchedFile(this);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -166,7 +181,7 @@ public class PeachFile {
 
     /**
      * Writes content to the file asynchronously on a separate thread to prevent server lag.
-     * * @param content The text content to write.
+     * @param content The text content to write.
      * @return A CompletableFuture containing this PeachFile instance.
      */
     public CompletableFuture<PeachFile> writeAsync(@NotNull String content) {
@@ -178,7 +193,7 @@ public class PeachFile {
 
     /**
      * Reads the entire file asynchronously to prevent server lag.
-     * * @return A CompletableFuture containing the file content as a String.
+     * @return A CompletableFuture containing the file content as a String.
      */
     public CompletableFuture<String> readAsync() {
         return CompletableFuture.supplyAsync(() -> {
@@ -192,7 +207,7 @@ public class PeachFile {
     /**
      * Writes text to the file. Overwrites any existing content.
      * Automatically creates parent directories if they are missing.
-     * * @param content The text to write.
+     * @param content The text to write.
      * @return This PeachFile instance for method chaining.
      * @throws IOException If an I/O error occurs.
      */
@@ -204,7 +219,7 @@ public class PeachFile {
 
     /**
      * Appends text to the end of the file without overwriting existing content.
-     * * @param content The text to append.
+     * @param content The text to append.
      * @return This PeachFile instance for method chaining.
      * @throws IOException If an I/O error occurs.
      */
@@ -216,14 +231,14 @@ public class PeachFile {
 
     /**
      * Reads the entire content of the file as a single String.
-     * * @return The file content.
+     * @return The file content.
      * @throws IOException If an I/O error occurs.
      */
     public String read() throws IOException { return Files.readString(this.path, StandardCharsets.UTF_8); }
 
     /**
      * Reads all lines of the file into a List of Strings.
-     * * @return A list containing all lines.
+     * @return A list containing all lines.
      * @throws IOException If an I/O error occurs.
      */
     public List<String> readLines() throws IOException { return Files.readAllLines(this.path, StandardCharsets.UTF_8); }
@@ -232,11 +247,11 @@ public class PeachFile {
 
     /**
      * Reads the file content and maps it directly to a Java Object using GSON.
-     * * <p><b>Example:</b>
+     * <p><b>Example:</b>
      * <pre>{@code
      * PlayerStats stats = myFile.readObject(PlayerStats.class);
      * }</pre>
-     * * @param clazz The class to deserialize into.
+     * @param clazz The class to deserialize into.
      * @return The populated Java Object.
      * @throws IOException If an I/O error occurs.
      */
@@ -244,7 +259,7 @@ public class PeachFile {
 
     /**
      * Serializes a Java Object to pretty-printed JSON and saves it to the file.
-     * * @param object The object to serialize.
+     * @param object The object to serialize.
      * @return This PeachFile instance for method chaining.
      * @throws IOException If an I/O error occurs.
      */
@@ -295,13 +310,13 @@ public class PeachFile {
     /**
      * Loads this file as a Bukkit YamlConfiguration.
      * Returns an empty configuration if the file does not exist yet.
-     * * @return The YamlConfiguration object.
+     * @return The YamlConfiguration object.
      */
     public YamlConfiguration getYaml() { return YamlConfiguration.loadConfiguration(this.path.toFile()); }
 
     /**
      * Saves a Bukkit YamlConfiguration back to this file.
-     * * @param yaml The YamlConfiguration to save.
+     * @param yaml The YamlConfiguration to save.
      * @return This PeachFile instance for method chaining.
      * @throws IOException If an I/O error occurs.
      */
@@ -316,7 +331,7 @@ public class PeachFile {
     /**
      * Calculates the SHA-256 hash of this file.
      * Useful for verifying file integrity or checking for updates.
-     * * @return The SHA-256 hash as a hex string, or "error" if it fails.
+     * @return The SHA-256 hash as a hex string, or "error" if it fails.
      */
     public String getHash() {
         try { return FileUtil.calculateHash(this.path, "SHA-256"); }
@@ -325,7 +340,7 @@ public class PeachFile {
 
     /**
      * Compresses this file into a ZIP archive at the specified destination.
-     * * @param destination The target path for the .zip file.
+     * @param destination The target path for the .zip file.
      * @throws IOException If an I/O error occurs.
      */
     public void zipTo(@NotNull Path destination) throws IOException { FileCompressor.compress(this.path, destination); }
@@ -334,7 +349,7 @@ public class PeachFile {
 
     /**
      * Copies this file to a new location. Replaces existing files at the target.
-     * * @param targetPath The destination file path.
+     * @param targetPath The destination file path.
      * @return A new PeachFile instance pointing to the copied file.
      * @throws IOException If an I/O error occurs.
      */
@@ -347,7 +362,7 @@ public class PeachFile {
 
     /**
      * Moves (renames) this file to a new location.
-     * * @param targetPath The destination file path.
+     * @param targetPath The destination file path.
      * @return A new PeachFile instance pointing to the moved file.
      * @throws IOException If an I/O error occurs.
      */
@@ -360,7 +375,7 @@ public class PeachFile {
 
     /**
      * Creates an empty file if it does not already exist.
-     * * @return true if created, false if it already existed.
+     * @return true if created, false if it already existed.
      * @throws IOException If an I/O error occurs.
      */
     public boolean createIfNotExist() throws IOException {

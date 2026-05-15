@@ -20,6 +20,7 @@ public class PeachLibAPI {
     private static final PlayerManager playerManager = new PlayerManager();
     private static final GUIManager guiManager = new GUIManager();
     private static final FileManager fileManager = new FileManager();
+    private static final LanguageManager languageManager = new LanguageManager();
 
     // --- Versioning ---
     private static final String API_VERSION = "v1.0.0";
@@ -114,5 +115,9 @@ public class PeachLibAPI {
 
     public static FileManager getFileManager() {
         return fileManager;
+    }
+
+    public static LanguageManager getLanguageManager() {
+        return languageManager;
     }
 }

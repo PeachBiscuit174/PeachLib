@@ -4,6 +4,7 @@ import de.peachbiscuit174.peachlib.Commands.PeachLibSettings;
 import de.peachbiscuit174.peachlib.configstuff.ConfigData;
 import de.peachbiscuit174.peachlib.configstuff.CustomConfig;
 import de.peachbiscuit174.peachlib.configstuff.SetupConfig;
+import de.peachbiscuit174.peachlib.files.PeachFile;
 import de.peachbiscuit174.peachlib.gui.GUIListener;
 import de.peachbiscuit174.peachlib.other.*;
 import de.peachbiscuit174.peachlib.scheduler.LibraryScheduler;
@@ -12,6 +13,11 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Main class of the PeachLib.
@@ -25,6 +31,40 @@ public final class PeachLib extends JavaPlugin {
     private static LibraryScheduler scheduler;
     private Metrics metrics;
     private static CustomConfig cfg;
+
+    // --- INTERNAL WATCHER REGISTRY ---
+    private static final Set<PeachFile> WATCHED_FILES = ConcurrentHashMap.newKeySet();
+
+    /**
+     * INTERNAL API - DO NOT USE!
+     * Registers a PeachFile to be tracked for automatic watcher shutdown.
+     */
+    @ApiStatus.Internal
+    public static void registerWatchedFile(@NotNull PeachFile file) {
+        WATCHED_FILES.add(file);
+    }
+
+    /**
+     * INTERNAL API - DO NOT USE!
+     * Unregisters a PeachFile from the tracker.
+     */
+    @ApiStatus.Internal
+    public static void unregisterWatchedFile(@NotNull PeachFile file) {
+        WATCHED_FILES.remove(file);
+    }
+
+    /**
+     * Private cleanup method.
+     * Stops all active file watchers safely on plugin disable.
+     */
+    private void stopAllWatchers() {
+        if (WATCHED_FILES.isEmpty()) return;
+        for (PeachFile file : WATCHED_FILES) {
+            file.stopWatching();
+        }
+        WATCHED_FILES.clear();
+    }
+    // ---------------------------------
 
     public static CustomConfig getCfg() {
         return cfg;
@@ -74,6 +114,9 @@ public final class PeachLib extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
+        stopAllWatchers();
+
         if (scheduler != null) {
             scheduler.shutdown();
         }
