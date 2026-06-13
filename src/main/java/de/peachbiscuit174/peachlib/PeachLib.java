@@ -1,6 +1,7 @@
 package de.peachbiscuit174.peachlib;
 
 import de.peachbiscuit174.peachlib.Commands.PeachLibSettings;
+import de.peachbiscuit174.peachlib.api.PeachLibAPI;
 import de.peachbiscuit174.peachlib.configstuff.ConfigData;
 import de.peachbiscuit174.peachlib.configstuff.CustomConfig;
 import de.peachbiscuit174.peachlib.configstuff.SetupConfig;
@@ -83,6 +84,8 @@ public final class PeachLib extends JavaPlugin {
         // Plugin startup logic
         plugin = this;
 
+        PeachLibAPI.init(this);
+
         cfg = new CustomConfig("settings.yml");
         SetupConfig.setup();
         ConfigData.reloadData();
@@ -93,6 +96,7 @@ public final class PeachLib extends JavaPlugin {
         scheduler = new LibraryScheduler(plugin);
         updateChecker = new UpdateChecker(this);
         updateChecker.bootstrap();
+
         new ReloadSafetyListener(this, scheduler);
         Bukkit.getServer().getPluginManager().registerEvents(new GUIListener(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new HolidayGreetingListener(), this);
@@ -102,6 +106,21 @@ public final class PeachLib extends JavaPlugin {
             cmd.setExecutor(new PeachLibSettings());
             getLogger().info("PeachLibSettings Command registriert :D");
         }
+
+        if (ConfigData.isShutdownOnSyncFailure()) {
+            PeachLibAPI.getDataManager().getTimeProvider().syncBlocking();
+            if (!PeachLibAPI.getDataManager().getTimeProvider().isSynchronized()) {
+                getLogger().severe("!!! CRITICAL TIME SYNC FAILED - SHUTTING DOWN SERVER !!!");
+                Bukkit.shutdown();
+                return; // Stop loading
+            }
+        } else {
+            // If shutdown isn't required, async is fine
+            PeachLibAPI.getDataManager().getTimeProvider().syncAsync();
+        }
+
+        // Try to recover any crashed database tasks from the Write-Ahead-Log
+        PeachLibAPI.getDataManager().recoverCrashLogs();
 
         getLogger().info("----------------------------------");
         getLogger().info("PeachLib has been loaded successfully.");
@@ -114,12 +133,15 @@ public final class PeachLib extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        PeachLibAPI.getDataManager().shutdown();
 
         stopAllWatchers();
 
         if (scheduler != null) {
             scheduler.shutdown();
         }
+
+        PeachLibAPI.shutdown();
 
         scheduler = null;
         updateChecker = null;

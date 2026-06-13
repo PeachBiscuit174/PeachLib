@@ -7,15 +7,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -36,6 +40,10 @@ public class ItemBuilder {
     private String displayName = null;
     private List<Component> itemLore = new ArrayList<>();
     private List<String> item_tag_list = new ArrayList<>();
+
+    private Map<Plugin, List<String>> pluginBooleanTags = new HashMap<>();
+    private Map<Plugin, Map<String, String>> pluginStringTags = new HashMap<>();
+
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     public ItemBuilder(@NotNull Material material) {
@@ -50,7 +58,7 @@ public class ItemBuilder {
         this.itemMeta = this.itemStack.getItemMeta();
     }
 
-    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list, int amount, String displayName, List<Component> itemLore) {
+    private ItemBuilder(@NotNull ItemStack itemStack, int customModelDataint, float customModelDatafloat, String item_tag, List<String> item_tag_list, int amount, String displayName, List<Component> itemLore, Map<Plugin, List<String>> pluginBooleanTags, Map<Plugin, Map<String, String>> pluginStringTags) {
         this.itemStack = itemStack.clone();
         this.itemMeta = this.itemStack.getItemMeta().clone();
         if (customModelDataint == -1 && customModelDatafloat != -1) {
@@ -79,6 +87,12 @@ public class ItemBuilder {
             this.itemLore = itemLore;
         }
 
+        if (pluginBooleanTags != null && !pluginBooleanTags.isEmpty()) {
+            pluginBooleanTags.forEach((k, v) -> this.pluginBooleanTags.put(k, new ArrayList<>(v)));
+        }
+        if (pluginStringTags != null && !pluginStringTags.isEmpty()) {
+            pluginStringTags.forEach((k, v) -> this.pluginStringTags.put(k, new HashMap<>(v)));
+        }
     }
 
     /**
@@ -91,7 +105,7 @@ public class ItemBuilder {
      * @return A new ItemBuilder instance with identical data.
      */
     public @NotNull ItemBuilder copy() {
-        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list, amount, displayName, itemLore);
+        return new ItemBuilder(this.buildWithoutData(), customModelDataLegacy, customModelData, item_tag, item_tag_list, amount, displayName, itemLore, pluginBooleanTags, pluginStringTags);
     }
 
     /**
@@ -287,10 +301,47 @@ public class ItemBuilder {
      * @return The current {@link ItemBuilder} instance to allow for method chaining (fluent API).
      * @see ItemTagAPI
      */
+    @Deprecated
     public ItemBuilder addItemTag(@NotNull String item_tag) {
         if (!item_tag_list.contains(item_tag)) {
             item_tag_list.add(item_tag);
         }
+        return this;
+    }
+
+    /**
+     * Adds a specific tag to the item for identification via the {@link ItemTagAPI}.
+     * <p>
+     * If the item does not already possess this tag, it will be applied.
+     * This is useful for filtering or identifying custom items programmatically.
+     * </p>
+     *
+     * @param plugin   The plugin instance to bind the namespace to.
+     * @param item_tag The unique string identifier to be assigned as a tag.
+     * Must not be null (enforced by {@link NotNull}).
+     * @return The current {@link ItemBuilder} instance to allow for method chaining (fluent API).
+     * @see ItemTagAPI
+     */
+    public ItemBuilder addItemTag(@NotNull Plugin plugin, @NotNull String item_tag) {
+        List<String> tags = this.pluginBooleanTags.computeIfAbsent(plugin, k -> new ArrayList<>());
+        if (!tags.contains(item_tag)) {
+            tags.add(item_tag);
+        }
+        return this;
+    }
+
+    /**
+     * Adds a specific string tag to the item for data storage via the {@link ItemTagAPI}.
+     *
+     * @param plugin   The plugin instance to bind the namespace to.
+     * @param item_tag The unique string identifier for the tag key.
+     * @param value    The string value to be stored in the tag.
+     * @return The current {@link ItemBuilder} instance to allow for method chaining.
+     * @see ItemTagAPI
+     */
+    public ItemBuilder setItemStringTag(@NotNull Plugin plugin, @NotNull String item_tag, @NotNull String value) {
+        Map<String, String> stringTags = this.pluginStringTags.computeIfAbsent(plugin, k -> new HashMap<>());
+        stringTags.put(item_tag, value);
         return this;
     }
 
@@ -313,7 +364,7 @@ public class ItemBuilder {
      * <li>Display name {@link #setDisplayName(String)}</li>
      * <li>Lore {@link #lore(List)} or {@link #lore(ItemLore)}</li>
      * <li>Custom Model Data (modern & legacy) {@link #setCustomModelData(float)}</li>
-     * <li>Item Tags {@link #addItemTag(String)}</li>
+     * <li>Item Tags {@link #addItemTag(String)} and {@link #addItemTag(Plugin, String)}</li>
      * </ul>
      * </p>
      *
@@ -348,7 +399,7 @@ public class ItemBuilder {
      * <li>Display name {@link #setDisplayName(String)}</li>
      * <li>Lore {@link #lore(List)} or {@link #lore(ItemLore)}</li>
      * <li>Custom Model Data (modern & legacy) {@link #setCustomModelData(float)}</li>
-     * <li>Item Tags {@link #addItemTag(String)}</li>
+     * <li>Item Tags {@link #addItemTag(String)} and {@link #addItemTag(Plugin, String)}</li>
      * </ul>
      * </p>
      *
@@ -387,9 +438,7 @@ public class ItemBuilder {
 
             if (customModelData != -1) {
                 buildItemStack.setItemMeta(buildItemMeta);
-                if (!buildItemStack.hasData(DataComponentTypes.CUSTOM_MODEL_DATA)) {
-                    buildItemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
-                }
+                buildItemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(customModelData).addFlag(true).build());
             } else if (customModelDataLegacy != -1) {
                 if (!buildItemMeta.hasCustomModelData()) {
                     buildItemMeta.setCustomModelData(customModelDataLegacy);
@@ -409,6 +458,24 @@ public class ItemBuilder {
         if (!build_item_tag_list.isEmpty()) {
             for (String key : build_item_tag_list) {
                 ItemTag.setItemTag(buildItemStack, key);
+            }
+        }
+
+        if (!pluginBooleanTags.isEmpty()) {
+            for (Map.Entry<Plugin, List<String>> entry : pluginBooleanTags.entrySet()) {
+                Plugin plugin = entry.getKey();
+                for (String key : entry.getValue()) {
+                    ItemTag.setItemTag(plugin, buildItemStack, key);
+                }
+            }
+        }
+
+        if (!pluginStringTags.isEmpty()) {
+            for (Map.Entry<Plugin, Map<String, String>> entry : pluginStringTags.entrySet()) {
+                Plugin plugin = entry.getKey();
+                for (Map.Entry<String, String> tagEntry : entry.getValue().entrySet()) {
+                    ItemTag.setItemStringTag(plugin, buildItemStack, tagEntry.getKey(), tagEntry.getValue());
+                }
             }
         }
 

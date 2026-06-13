@@ -1,6 +1,8 @@
 package de.peachbiscuit174.peachlib.api;
 
+import de.peachbiscuit174.peachlib.PeachLib;
 import de.peachbiscuit174.peachlib.api.managers.*;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Arrays;
 
@@ -13,17 +15,39 @@ import java.util.Arrays;
  */
 public class PeachLibAPI {
 
-
     // --- Managers ---
-    private static final ItemsManager itemsManager = new ItemsManager();
-    private static final SchedulerManager schedulerManager = new SchedulerManager();
-    private static final PlayerManager playerManager = new PlayerManager();
-    private static final GUIManager guiManager = new GUIManager();
-    private static final FileManager fileManager = new FileManager();
-    private static final LanguageManager languageManager = new LanguageManager();
+    private static ItemsManager itemsManager;
+    private static SchedulerManager schedulerManager;
+    private static PlayerManager playerManager;
+    private static GUIManager guiManager;
+    private static FileManager fileManager;
+    private static LanguageManager languageManager;
+    private static DataManager dataManager;
 
     // --- Versioning ---
     private static final String API_VERSION = "v1.0.0";
+
+    @ApiStatus.Internal
+    public static void init(PeachLib plugin) {
+        itemsManager = new ItemsManager();
+        schedulerManager = new SchedulerManager();
+        playerManager = new PlayerManager();
+        guiManager = new GUIManager();
+        fileManager = new FileManager();
+        languageManager = new LanguageManager();
+        dataManager = new DataManager(plugin.getDataFolder());
+    }
+
+    @ApiStatus.Internal
+    public static void shutdown() {
+        itemsManager = null;
+        schedulerManager = null;
+        playerManager = null;
+        guiManager = null;
+        fileManager = null;
+        languageManager = null;
+        dataManager = null;
+    }
 
     /**
      * Returns the current API Version as a String.
@@ -119,5 +143,9 @@ public class PeachLibAPI {
 
     public static LanguageManager getLanguageManager() {
         return languageManager;
+    }
+
+    public static DataManager getDataManager() {
+        return dataManager;
     }
 }

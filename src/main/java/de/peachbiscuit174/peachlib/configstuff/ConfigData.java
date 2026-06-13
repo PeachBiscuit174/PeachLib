@@ -9,10 +9,12 @@ public class ConfigData {
     private static final FileConfiguration cfg = cfg_raw.getConfig();
     private static boolean autoUpdateStatus = true;
     private static boolean allowSnapshotUpdates = false;
+    private static boolean shutdownOnSyncFailure = true;
 
     public static void reloadData() {
         autoUpdateStatus = cfg.getBoolean("setting.auto_update");
         allowSnapshotUpdates = cfg.getBoolean("setting.allow_snapshot_updates");
+        shutdownOnSyncFailure = cfg.getBoolean("setting.shutdown_on_time_sync_failure");
     }
 
     public static boolean getAutoUpdateStatus() {
@@ -45,6 +47,10 @@ public class ConfigData {
         allowSnapshotUpdates = value;
         cfg.set("setting.allow_snapshot_updates", value);
         cfg_raw.save();
+    }
+
+    public static boolean isShutdownOnSyncFailure() {
+        return shutdownOnSyncFailure;
     }
 
 }
