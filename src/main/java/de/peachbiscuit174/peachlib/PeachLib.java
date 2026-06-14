@@ -84,8 +84,6 @@ public final class PeachLib extends JavaPlugin {
         // Plugin startup logic
         plugin = this;
 
-        PeachLibAPI.init(this);
-
         cfg = new CustomConfig("settings.yml");
         SetupConfig.setup();
         ConfigData.reloadData();
@@ -107,16 +105,18 @@ public final class PeachLib extends JavaPlugin {
             getLogger().info("PeachLibSettings Command registriert :D");
         }
 
-        if (ConfigData.isShutdownOnSyncFailure()) {
+        PeachLibAPI.init(this);
+
+        if (ConfigData.isSyncTimeForDatabase()) {
             PeachLibAPI.getDataManager().getTimeProvider().syncBlocking();
+        }
+
+        if (ConfigData.isShutdownOnSyncFailure()) {
             if (!PeachLibAPI.getDataManager().getTimeProvider().isSynchronized()) {
                 getLogger().severe("!!! CRITICAL TIME SYNC FAILED - SHUTTING DOWN SERVER !!!");
                 Bukkit.shutdown();
                 return; // Stop loading
             }
-        } else {
-            // If shutdown isn't required, async is fine
-            PeachLibAPI.getDataManager().getTimeProvider().syncAsync();
         }
 
         // Try to recover any crashed database tasks from the Write-Ahead-Log

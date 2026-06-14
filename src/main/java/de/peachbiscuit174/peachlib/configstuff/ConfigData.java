@@ -10,11 +10,16 @@ public class ConfigData {
     private static boolean autoUpdateStatus = true;
     private static boolean allowSnapshotUpdates = false;
     private static boolean shutdownOnSyncFailure = true;
+    private static boolean syncTimeForDatabase = true;
 
     public static void reloadData() {
         autoUpdateStatus = cfg.getBoolean("setting.auto_update");
         allowSnapshotUpdates = cfg.getBoolean("setting.allow_snapshot_updates");
+        syncTimeForDatabase = cfg.getBoolean("setting.sync_time_for_database");
         shutdownOnSyncFailure = cfg.getBoolean("setting.shutdown_on_time_sync_failure");
+        if (!syncTimeForDatabase) {
+            shutdownOnSyncFailure = false;
+        }
     }
 
     public static boolean getAutoUpdateStatus() {
@@ -51,6 +56,10 @@ public class ConfigData {
 
     public static boolean isShutdownOnSyncFailure() {
         return shutdownOnSyncFailure;
+    }
+
+    public static boolean isSyncTimeForDatabase() {
+        return syncTimeForDatabase;
     }
 
 }

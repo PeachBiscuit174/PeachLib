@@ -17,6 +17,10 @@ public class SetupConfig {
             cfg.set("setting.allow_snapshot_updates", false);
         }
 
+        if (!cfg.isSet("setting.sync_time_for_database")) {
+            cfg.set("setting.sync_time_for_database", true);
+        }
+
         if (!cfg.isSet("setting.shutdown_on_time_sync_failure")) {
             cfg.set("setting.shutdown_on_time_sync_failure", true);
         }
