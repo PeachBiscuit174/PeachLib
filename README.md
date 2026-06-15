@@ -1,4 +1,4 @@
-# 🍑 PeachLib(Readme need Update, i will make it soon)
+# 🍑 PeachLib
 [![PeachLib](https://api.mcbanners.com/banner/resource/hangar/PeachLib/banner.png?background__template=MALACHITE_GREEN)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![PeachLib](https://img.shields.io/hangar/views/PeachLib?link=https%3A%2F%2Fhangar.papermc.io%2FPeachBiscuit174%2FPeachLib&style=flat)](https://hangar.papermc.io/PeachBiscuit174/PeachLib)
 [![Servers](https://img.shields.io/bstats/servers/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074) [![Players](https://img.shields.io/bstats/players/29074?style=flat&color=blue)](https://bstats.org/plugin/bukkit/PeachLib/29074)
@@ -8,6 +8,9 @@ A PaperMC Library.
 
 > [!IMPORTANT]
 > **Project Status:** This is a **hobby project**. Updates and support depend on availability and motivation. There is no guarantee for immediate bug fixes, but feedback and interaction are expressly encouraged!
+> 
+> 📝 **Documentation Updated:** June 2026 *(Covers features up to `v1.0.0-SNAPSHOT26`).*
+> *Please note: As this is a solo project, new features might sometimes exist in the codebase before they are fully documented here. Feel free to explore the API!*
 
 ---
 
@@ -51,35 +54,20 @@ Add the library to your project via **JitPack**.
 
 ## ✨ Key Features & API
 
-- PeachLib offers a wide range of managers and APIs accessible via the central `PeachLibAPI` class:
+PeachLib offers a wide range of managers and APIs accessible via the central `PeachLibAPI` class:
 
-    - **📦 Items Manager:**
-        - **ItemBuilderAPI:** Build items with full MiniMessage support, custom model data, and ItemLore.
+- **💾 Data Manager:** Powerful multi-backend storage (MySQL, SQLite, YAML, FileTree) featuring asynchronous task queuing, smart caching, and built-in crash recovery.
+- **🌍 Language Manager:** Effortless plugin-specific localization with automatic caching.
+- **📦 Items Manager:** Build items with full MiniMessage support, generate Base64 player heads, and manage PersistentDataContainer tags effortlessly.
+- **🪟 GUI Manager:** Create modern `InventoryGUI` and multi-page `PaginatedGUI` instances with visual layout mapping and auto-item protection.
+- **📁 File Manager:** Asynchronous file handling, safe atomic writes, and secure Zip extractions (Zip-Bomb/Zip-Slip protection).
+- **⏱️ Scheduler Manager:** A high-performance, real-time `LibraryScheduler` utilizing separate ThreadPools to prevent server lag.
+- **👤 Player Manager:** Smart utilities for inventory management and MiniMessage-based display names.
 
-        - **CustomHeadsAPI:** Easily create player heads via Base64, URI, or URL.
-
-        - **ItemSerializerAPI:** Serialize/Deserialize items to and from Base64 or bytes.
-
-        - **ItemTagAPI:** Manage PersistentDataContainer tags effortlessly.
-
-    - **🪟 GUI Manager:** Create modern InventoryGUI and multi-page PaginatedGUI instances. Features visual layout mapping (shape()), auto-item protection, and clickable GUIButton objects.
-
-    - **📁 File Manager:**
-  
-        - Asynchronous file/directory handling, safe atomic writes, and rotating backup cleaners.
-        - Secure Zip extractions with built-in protection against Zip-Bomb and Zip-Slip vulnerabilities.
-
-    - **⏱️ Scheduler Manager:** A high-performance, real-time LibraryScheduler using separate ThreadPools to offload tasks and prevent server lag.
-
-    - **👤 Player Manager:** Smart utilities like giveOrDropItem and MiniMessage-based display name management.
-
-    **Built-in Systems:**
-
-    - **Reload Protection:** Safely blocks the /reload command and forces a safe server shutdown to prevent plugin corruption.
-
-    - **Holiday Greetings:** Automatically greets players on holidays (New Year, Halloween, Christmas, etc.) with customizable messages.
-
-    - **Update Checker:** Checks for new GitHub releases automatically.
+**Built-in Systems & Admin Tools:**
+- **Reload Protection:** Safely blocks the `/reload` command to prevent severe plugin corruption.
+- **Smart Update Checker:** Automatically checks for GitHub releases, strictly respecting snapshot settings and API version compatibility.
+- **Holiday Greetings:** Automatically greets players on holidays (New Year, Halloween, Christmas, etc.) with customizable messages.
 
 
 **Example Usage:**
@@ -185,6 +173,9 @@ Eine PaperMC-Library.
 
 > [!IMPORTANT]
 > **Projekt-Status:** Dies ist ein **Freizeitprojekt**. Updates und Support erfolgen nach zeitlicher Verfügbarkeit und Lust. Es besteht kein Anspruch auf sofortige Fehlerbehebung, jedoch sind Feedback und Interaktion ausdrücklich erwünscht!
+> 
+> 📝 **Dokumentation aktualisiert:** Juni 2026 *(Beinhaltet Features bis `v1.0.0-SNAPSHOT26`).*
+> *Hinweis: Da dies ein Ein-Mann-Projekt ist, kann es vorkommen, dass einige neuere Features bereits im Code existieren, bevor sie hier vollständig dokumentiert werden. Erkunde die API gerne auf eigene Faust!*
 
 ---
 
@@ -230,34 +221,19 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
 
 PeachLib bietet eine Vielzahl an Managern und APIs, die zentral über die `PeachLibAPI` Klasse erreichbar sind:
 
-- **📦 Items Manager:**
-    
-    - **ItemBuilderAPI:** Erstelle Items mit MiniMessage-Support, Custom Model Data und ItemLore.
+- **💾 Data Manager:** Leistungsstarker Multi-Backend-Speicher (MySQL, SQLite, YAML, FileTree) mit asynchroner Queue, intelligentem Caching und Crash-Recovery.
+- **🌍 Language Manager:** Mühelose, plugin-spezifische Lokalisierung mit automatischem Instanzen-Caching.
+- **📦 Items Manager:** Erstelle Items mit MiniMessage-Support, generiere Base64-Spielerköpfe und verwalte PersistentData-Tags ganz einfach.
+- **🪟 GUI Manager:** Erstelle moderne `InventoryGUI` und mehrseitige `PaginatedGUI` Instanzen mit visuellem Layout-Mapping und automatischem Item-Schutz.
+- **📁 File Manager:** Asynchrones Datei-Handling, sicheres atomares Speichern und Zip-Extrahierung mit integriertem Schutz vor Zip-Bombing.
+- **⏱️ Scheduler Manager:** Hochleistungsfähige ThreadPools zur sofortigen Entlastung des Main-Threads und Vermeidung von Server-Lags.
+- **👤 Player Manager:** Smarte Utilities für das Inventar-Management und MiniMessage-Displaynamen.
 
-    - **CustomHeadsAPI:** Generiere Spielerköpfe über Base64, URI oder URL.
-
-    - **ItemSerializerAPI:** Konvertiere Items in und aus Base64 oder Bytes.
-
-    - **ItemTagAPI:** Verwalte PersistentDataContainer-Tags ganz einfach.
-
-  - **🪟 GUI Manager:** Erstelle moderne InventoryGUI und mehrseitige PaginatedGUI Instanzen. Bietet visuelles Layout-Mapping (shape()), automatischen Item-Schutz und klickbare GUIButton-Objekte.
-  
-    - **📁 File Manager:**
-  
-        - Asynchrones Datei-Handling, sicheres atomares Speichern und automatische Backup-Bereinigung.
-        - Sichere Zip-Extrahierung mit integriertem Schutz vor Zip-Bomb- und Zip-Slip-Schwachstellen.
-
-  - **⏱️ Scheduler Manager:** Ein hochleistungsfähiger Echtzeit-LibraryScheduler, der eigene ThreadPools nutzt, um den Main-Thread zu entlasten und Server-Lag zu verhindern.
-
-  - **👤 Player Manager:** Praktische Utilities wie giveOrDropItem und die Verwaltung von Displaynamen via MiniMessage.
-
-**Integrierte Systeme:**
-
-  - **Reload-Schutz:** Blockiert den /reload-Befehl und erzwingt einen sicheren Server-Neustart, um Plugin-Korruption zu vermeiden.
-
-  - **Feiertagsgrüße:** Begrüßt Spieler automatisch an Feiertagen (Neujahr, Halloween, Weihnachten etc.) mit anpassbaren Nachrichten.
-
-  - **Update Checker:** Sucht automatisch nach neuen GitHub-Releases.
+**Integrierte Systeme & Admin-Tools:**
+- **Ingame Config-GUI:** Server-Admins können Netzwerkfunktionen (wie Auto-Updates und NTP-Sync) ganz bequem direkt im Spiel steuern.
+- **Reload-Schutz:** Blockiert den `/reload`-Befehl und erzwingt einen Neustart, um schwerwiegende Plugin-Korruption zu verhindern.
+- **Smart Update Checker:** Sucht automatisch nach GitHub-Releases und berücksichtigt dabei intelligent Snapshot-Regeln und API-Versionskompatibilität.
+- **Feiertagsgrüße:** Automatische, anpassbare Begrüßungen für Spieler an Feiertagen (Weihnachten, Halloween etc.).
 
 **Beispiel:**
 ```java
