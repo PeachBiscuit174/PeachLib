@@ -28,6 +28,8 @@ public class MySQLAdapter implements StorageAdapter {
     public void connect(Credentials credentials) throws Exception {
         HikariConfig config = new HikariConfig();
 
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
         String jdbcUrl = "jdbc:mysql://" + credentials.host() + ":" + credentials.port() + "/" + credentials.database();
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(credentials.username());

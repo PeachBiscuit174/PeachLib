@@ -42,7 +42,7 @@ Add the library to your project via **JitPack**.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT26</version>
+        <version>v1.0.0-SNAPSHOT27</version>
         <scope>provided</scope>
     </dependency>
 ```
@@ -114,12 +114,12 @@ Even though this is a hobby project, your opinion matters!
 - **GitHub:** The built-in Update Checker connects to `api.github.com` and GitHub Releases to check for and download new versions safely. This transmits the server's IP address to GitHub. *(Can be disabled via Config or in-game GUI)*.
 - **NTP / Google (Time Synchronization):** The `TimeProvider` synchronizes time to ensure highest accuracy for database entries. It connects to `pool.ntp.org` (via UDP) and falls back to `google.com` (HTTP HEAD request). This transmits the server's IP address. *(Can be completely disabled via the `sync_time_for_database` config option)*.
 
-**Bundled Dependencies:**
-To provide out-of-the-box functionality, PeachLib shades the following dependencies. By using PeachLib, you also comply with their respective licenses:
-- **HikariCP:** Fast JDBC connection pooling ([Apache License 2.0](https://github.com/brettwooldridge/HikariCP/blob/HEAD/LICENSE)).
-- **SQLite-JDBC:** SQLite database driver ([Apache License 2.0](https://github.com/xerial/sqlite-jdbc/blob/HEAD/LICENSE)).
-- **MySQL Connector/J:** MySQL database driver ([GPLv2 with FOSS Exception](https://github.com/mysql/mysql-connector-j/blob/HEAD/LICENSE)).
-- *(bStats and HikariCP are relocated within the library to prevent conflicts with other plugins).*
+**Bundled & External Dependencies:**
+
+To provide out-of-the-box functionality, PeachLib utilizes the following third-party libraries. By using PeachLib, you also comply with their respective licenses:
+
+- **bStats:** Collects anonymous technical data. *(Shaded and relocated within the library to prevent conflicts with other plugins).*
+- **HikariCP** ([Apache 2.0](https://github.com/brettwooldridge/HikariCP/blob/HEAD/LICENSE)), **SQLite-JDBC** ([Apache 2.0](https://github.com/xerial/sqlite-jdbc/blob/HEAD/LICENSE)), and **MySQL Connector/J** ([GPLv2 with FOSS Exception](https://github.com/mysql/mysql-connector-j/blob/HEAD/LICENSE)): These database drivers and connection pools are **not** bundled inside the JAR. They are automatically and safely downloaded from Maven Central at runtime using the native Spigot/Paper libraries system.
 
 ---
 
@@ -207,7 +207,7 @@ Füge die Library über **JitPack** zu deinem Projekt hinzu.
     <dependency>
         <groupId>com.github.PeachBiscuit174</groupId>
         <artifactId>PeachLib</artifactId>
-        <version>v1.0.0-SNAPSHOT26</version>
+        <version>v1.0.0-SNAPSHOT27</version>
         <scope>provided</scope>
     </dependency>
 ```
@@ -279,12 +279,12 @@ Obwohl dies ein Freizeitprojekt ist, ist deine Meinung wichtig!
 - **GitHub:** Der integrierte Update-Checker verbindet sich mit `api.github.com` und den GitHub Releases, um sicher nach neuen Versionen zu suchen und diese herunterzuladen. Dabei wird technisch bedingt die IP-Adresse des Servers an GitHub übertragen. *(Kann via Config oder Ingame-GUI deaktiviert werden)*.
 - **NTP / Google (Zeitsynchronisation):** Der `TimeProvider` synchronisiert die Zeit, um höchste Genauigkeit für Datenbankeinträge zu gewährleisten. Er verbindet sich mit `pool.ntp.org` (via UDP) und weicht auf `google.com` (HTTP HEAD) aus. Dabei wird die IP-Adresse des Servers übertragen. *(Kann über die Config-Option `sync_time_for_database` vollständig deaktiviert werden)*.
 
-**Integrierte Bibliotheken (Shaded Dependencies):**
-Um eine sofort einsatzbereite Funktionalität zu bieten, integriert PeachLib die folgenden Abhängigkeiten direkt. Durch die Nutzung von PeachLib gelten auch deren jeweilige Lizenzen:
-- **HikariCP:** Performantes JDBC Connection-Pooling ([Apache License 2.0](https://github.com/brettwooldridge/HikariCP/blob/HEAD/LICENSE)).
-- **SQLite-JDBC:** SQLite Datenbanktreiber ([Apache License 2.0](https://github.com/xerial/sqlite-jdbc/blob/HEAD/LICENSE)).
-- **MySQL Connector/J:** MySQL Datenbanktreiber ([GPLv2 mit FOSS Exception](https://github.com/mysql/mysql-connector-j/blob/HEAD/LICENSE)).
-- *(bStats und HikariCP sind innerhalb der Library relokalisiert, um Konflikte mit anderen Plugins zu vermeiden).*
+**Integrierte & externe Abhängigkeiten:**
+
+Um eine sofort einsatzbereite Funktionalität zu bieten, nutzt PeachLib die folgenden Drittanbieter-Bibliotheken. Durch die Nutzung von PeachLib gelten auch deren jeweilige Lizenzen:
+
+- **bStats:** Sammelt anonyme technische Daten. *(Innerhalb der Library integriert und relokalisiert, um Konflikte mit anderen Plugins zu vermeiden).*
+- **HikariCP** ([Apache 2.0](https://github.com/brettwooldridge/HikariCP/blob/HEAD/LICENSE)), **SQLite-JDBC** ([Apache 2.0](https://github.com/xerial/sqlite-jdbc/blob/HEAD/LICENSE)) und **MySQL Connector/J** ([GPLv2 mit FOSS Exception](https://github.com/mysql/mysql-connector-j/blob/HEAD/LICENSE)): Diese Datenbanktreiber und Connection-Pools werden **nicht** mitkompiliert. Sie werden beim Serverstart automatisch und sicher über das native Spigot/Paper-Library-System von Maven Central nachgeladen.
 
 ---
 

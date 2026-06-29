@@ -1,9 +1,14 @@
 name: PeachLib
-version: '1.0.0-SNAPSHOT26'
+version: '1.0.0-SNAPSHOT27'
 main: de.peachbiscuit174.peachlib.PeachLib
 api-version: '1.21.4'
 authors: [ PeachBiscuit174 :D ]
 description: PeachLib (PL)
+
+libraries:
+  - com.zaxxer:HikariCP:7.1.0
+  - org.xerial:sqlite-jdbc:3.53.2.0
+  - com.mysql:mysql-connector-j:9.7.0
 
 commands:
   peachLibSettings:

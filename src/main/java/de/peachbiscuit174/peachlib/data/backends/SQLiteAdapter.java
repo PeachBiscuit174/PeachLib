@@ -38,7 +38,7 @@ public class SQLiteAdapter implements StorageAdapter {
         File dbFile = new File(dbDir, credentials.database() + ".db");
         String jdbcUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
 
-        Class.forName("org.sqlite.JDBC");
+        Class.forName("org.sqlite.JDBC", true, this.getClass().getClassLoader());
         this.connection = DriverManager.getConnection(jdbcUrl);
 
         try (PreparedStatement pragmaStmt = connection.prepareStatement("PRAGMA journal_mode=WAL;")) {
