@@ -82,13 +82,21 @@ public class DataWorker implements Runnable {
             switch (task.type()) {
                 case WRITE -> {
                     adapter.write(task.tableName(), task.id(), task.jsonValue(), task.timestamp());
-                    auditLogger.logOperation(task.connectionId(), task.tableName(), "WRITE", task.id(), task.jsonValue());
                     if (task.future() != null) task.future().complete(null);
+                    try {
+                        auditLogger.logOperation(task.connectionId(), task.tableName(), "WRITE", task.id(), task.jsonValue());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 case DELETE -> {
                     adapter.delete(task.tableName(), task.id());
-                    auditLogger.logOperation(task.connectionId(), task.tableName(), "DELETE", task.id(), null);
                     if (task.future() != null) task.future().complete(null);
+                    try {
+                        auditLogger.logOperation(task.connectionId(), task.tableName(), "DELETE", task.id(), null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 case READ -> {
                     String json = adapter.read(task.tableName(), task.id());

@@ -90,9 +90,7 @@ public class TableCache {
     public void performTTLCleanup() {
         long currentTime = System.currentTimeMillis();
         try {
-            Set<String> keys = sqliteCacheAdapter.getAllPrimaryKeys(tableName);
-
-            for (String key : keys) {
+            for (String key : lastAccessMap.keySet()) {
                 Long lastAccess = lastAccessMap.get(key);
                 if (lastAccess == null || (currentTime - lastAccess) > TTL_MILLIS) {
                     removeFromCache(key);

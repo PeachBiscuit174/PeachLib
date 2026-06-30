@@ -11,9 +11,10 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -29,9 +30,10 @@ public class AuditLogger {
     private final int limit;
 
     // Dedicated single thread to process all logging sequentially without blocking the main worker
-    private final ExecutorService loggingExecutor = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService loggingExecutor = Executors.newSingleThreadScheduledExecutor();
 
     private final Map<String, YamlConfiguration> cachedConfigs = new ConcurrentHashMap<>();
+    private final java.util.Set<String> dirtyConfigs = new HashSet<>();
 
     // Pattern to prevent Path Traversal exploits
     private static final Pattern VALID_NAME = Pattern.compile("^[a-zA-Z0-9_\\-]+$");
@@ -42,6 +44,9 @@ public class AuditLogger {
             this.auditDir.mkdirs();
         }
         this.limit = limit;
+        
+        // Batch save dirty configs every 5 seconds to reduce I/O
+        this.loggingExecutor.scheduleAtFixedRate(this::saveDirtyConfigs, 5, 5, TimeUnit.SECONDS);
     }
 
     private void validateName(String name) {
@@ -87,18 +92,30 @@ public class AuditLogger {
             }
 
             config.set("logs", fastLogs);
-            try {
-                config.save(logFile);
-            } catch (IOException e) {
-                PeachLib.getPlugin().getLogger().severe("Failed to save audit log: " + e.getMessage());
-            }
+            dirtyConfigs.add(connectionId);
         });
+    }
+
+    private void saveDirtyConfigs() {
+        for (String connId : dirtyConfigs) {
+            YamlConfiguration config = cachedConfigs.get(connId);
+            if (config != null) {
+                File logFile = new File(auditDir, connId + ".yml");
+                try {
+                    config.save(logFile);
+                } catch (IOException e) {
+                    PeachLib.getPlugin().getLogger().severe("Failed to save audit log: " + e.getMessage());
+                }
+            }
+        }
+        dirtyConfigs.clear();
     }
 
     /**
      * Safely shuts down the background logging thread.
      */
     public void shutdown() {
+        loggingExecutor.submit(this::saveDirtyConfigs);
         loggingExecutor.shutdown();
         try {
             if (!loggingExecutor.awaitTermination(2, TimeUnit.SECONDS)) {

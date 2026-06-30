@@ -42,6 +42,10 @@ public class GUIListener implements Listener {
                 else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
                 }
+                
+                else if (event.getAction() == InventoryAction.HOTBAR_SWAP) {
+                    event.setCancelled(true);
+                }
             }
 
             if (currentItem != null && clickedInv.equals(event.getView().getTopInventory())) {

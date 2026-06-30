@@ -141,14 +141,16 @@ public class QueueLogger {
         try {
             if (writer != null) {
                 writer.close();
+                writer = null;
             }
 
             Files.move(tempLogFile.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             Files.deleteIfExists(tempLogFile.toPath());
 
-            initWriter();
         } catch (IOException e) {
             PeachLib.getPlugin().getLogger().severe("Failed to clear queue log atomically: " + e.getMessage());
+        } finally {
+            initWriter();
         }
     }
 }
