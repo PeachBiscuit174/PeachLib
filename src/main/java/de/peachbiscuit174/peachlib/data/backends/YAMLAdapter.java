@@ -58,10 +58,12 @@ public class YAMLAdapter implements StorageAdapter {
         File tableFile = getTableFile(tableName);
         YamlConfiguration config = YamlConfiguration.loadConfiguration(tableFile);
 
-        config.set(id + ".value", jsonValue);
-        config.set(id + ".timestamp", timestamp);
-
-        config.save(tableFile);
+        long existingTimestamp = config.contains(id + ".timestamp") ? config.getLong(id + ".timestamp") : -1;
+        if (timestamp > existingTimestamp) {
+            config.set(id + ".value", jsonValue);
+            config.set(id + ".timestamp", timestamp);
+            config.save(tableFile);
+        }
     }
 
     @Override

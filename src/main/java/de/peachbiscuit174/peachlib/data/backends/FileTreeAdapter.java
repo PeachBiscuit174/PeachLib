@@ -1,5 +1,9 @@
 package de.peachbiscuit174.peachlib.data.backends;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import de.peachbiscuit174.peachlib.api.managers.Credentials;
 import de.peachbiscuit174.peachlib.data.StorageAdapter;
 import org.jetbrains.annotations.ApiStatus;
@@ -7,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -58,10 +62,47 @@ public class FileTreeAdapter implements StorageAdapter {
     @Override
     public void write(String tableName, String id, String jsonValue, long timestamp) throws Exception {
         File targetFile = getFile(tableName, id);
-        Path path = targetFile.toPath();
 
-        Files.writeString(path, jsonValue, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        targetFile.setLastModified(timestamp);
+        if (timestamp <= 0) {
+            timestamp = System.currentTimeMillis();
+        }
+
+        // Bestehende Datei lesen und vergleichen
+        if (targetFile.exists()) {
+            String existing = Files.readString(targetFile.toPath());
+            JsonObject wrapper = tryParseWrapper(existing);
+            if (wrapper != null) {
+
+                long storedTimestamp = wrapper.get("timestamp").getAsLong();
+                if (storedTimestamp >= timestamp) {
+                    return;
+                }
+            } else {
+                long legacyTimestamp = targetFile.lastModified();
+                if (legacyTimestamp >= timestamp) {
+                    return;
+                }
+            }
+        }
+
+
+        JsonObject wrapper = new JsonObject();
+        wrapper.addProperty("timestamp", timestamp);
+        JsonElement valueElement = JsonParser.parseString(jsonValue);
+        if (valueElement == null || valueElement.isJsonNull()) {
+            wrapper.add("value", JsonNull.INSTANCE);
+        } else {
+            wrapper.add("value", valueElement);
+        }
+        String content = new com.google.gson.GsonBuilder().create().toJson(wrapper);
+
+        Path tempFile = Files.createTempFile(targetFile.getParentFile().toPath(), ".tmp", ".json");
+        try {
+            Files.writeString(tempFile, content);
+            Files.move(tempFile, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+            Files.move(tempFile, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     @Override
@@ -78,7 +119,17 @@ public class FileTreeAdapter implements StorageAdapter {
         if (!targetFile.exists()) {
             return null;
         }
-        return Files.readString(targetFile.toPath());
+        String raw = Files.readString(targetFile.toPath());
+
+        JsonObject wrapper = tryParseWrapper(raw);
+        if (wrapper != null && wrapper.has("value")) {
+            JsonElement value = wrapper.get("value");
+            if (value.isJsonNull()) {
+                return "null";
+            }
+            return value.toString();
+        }
+        return raw;
     }
 
     @Override
@@ -109,5 +160,26 @@ public class FileTreeAdapter implements StorageAdapter {
         validateName(id);
         File tableDir = new File(connectionDir, tableName);
         return new File(tableDir, id + ".json");
+    }
+
+
+    private JsonObject tryParseWrapper(String raw) {
+        try {
+            JsonElement root = JsonParser.parseString(raw);
+            if (!root.isJsonObject()) {
+                return null;
+            }
+            JsonObject obj = root.getAsJsonObject();
+            if (!obj.has("timestamp") || !obj.has("value")) {
+                return null;
+            }
+            if (!obj.get("timestamp").isJsonPrimitive() ||
+                !obj.get("timestamp").getAsJsonPrimitive().isNumber()) {
+                return null;
+            }
+            return obj;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -92,8 +92,9 @@ public class MySQLAdapter implements StorageAdapter {
     @Override
     public void write(String tableName, String id, String jsonValue, long timestamp) throws Exception {
         validateTableName(tableName);
-        String sql = "INSERT INTO `" + tableName + "` (`id`, `value`, `timestamp`) VALUES (?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `timestamp` = VALUES(`timestamp`);";
+        String sql = "INSERT INTO `" + tableName + "` (`id`, `value`, `timestamp`) VALUES (?, ?, ?) AS `new` " +
+                "ON DUPLICATE KEY UPDATE `value` = IF(`new`.`timestamp` > `timestamp`, `new`.`value`, `value`), " +
+                "`timestamp` = IF(`new`.`timestamp` > `timestamp`, `new`.`timestamp`, `timestamp`);";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

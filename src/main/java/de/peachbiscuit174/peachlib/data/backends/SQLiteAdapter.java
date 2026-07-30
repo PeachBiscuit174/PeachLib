@@ -78,7 +78,8 @@ public class SQLiteAdapter implements StorageAdapter {
     public synchronized void write(String tableName, String id, String jsonValue, long timestamp) throws Exception {
         validateTableName(tableName);
         String sql = "INSERT INTO `" + tableName + "` (`id`, `value`, `timestamp`) VALUES (?, ?, ?) " +
-                "ON CONFLICT(`id`) DO UPDATE SET `value` = excluded.`value`, `timestamp` = excluded.`timestamp`;";
+                "ON CONFLICT(`id`) DO UPDATE SET `value` = excluded.`value`, `timestamp` = excluded.`timestamp` " +
+                "WHERE excluded.`timestamp` > `timestamp`;";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, id);
