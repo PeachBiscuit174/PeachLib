@@ -233,10 +233,21 @@ public final class TableSchematic {
 
         /**
          * Marks the current column as the table's primary key. Implies {@code NOT NULL}.
+         * <p>
+         * Allowed primary key types are {@link ColumnType.Kind#INT},
+         * {@link ColumnType.Kind#LONG} and {@link ColumnType.Kind#VARCHAR} with a
+         * maximum length not exceeding {@link ColumnType#MAX_PRIMARY_KEY_VARCHAR_LENGTH}.
+         * Other kinds, or VARCHAR columns longer than that limit, are rejected at
+         * column commit time (i.e. when the next {@link #column(String, ColumnType)}
+         * call begins, or when {@link #build()} is invoked) – the order of modifier
+         * calls does not matter.
+         * </p>
          *
          * @return this builder.
-         * @throws IllegalStateException if called before any {@link #column(String, ColumnType)}
-         *                               call.
+         * @throws IllegalStateException    if called before any {@link #column(String, ColumnType)}
+         *                                  call.
+         * @throws IllegalArgumentException at column commit time if the chosen column
+         *                                  type cannot serve as a primary key.
          */
         public @NotNull Builder primaryKey() {
             ensureModifiersStarted("primaryKey()");
@@ -325,10 +336,21 @@ public final class TableSchematic {
                                         + pk.getName() + " and " + column.getName());
                     }
                     if (!column.getType().supportsPrimaryKey()) {
+                        if (column.getType().getKind() == ColumnType.Kind.VARCHAR) {
+                            throw new IllegalArgumentException(
+                                    "Primary key column '" + column.getName() + "' in table '"
+                                            + name + "' uses " + column.getType()
+                                            + ", but VARCHAR primary keys may have at most "
+                                            + ColumnType.MAX_PRIMARY_KEY_VARCHAR_LENGTH
+                                            + " characters");
+                        }
                         throw new IllegalArgumentException(
                                 "Primary key column '" + column.getName() + "' in table '"
                                         + name + "' uses unsupported type "
-                                        + column.getType());
+                                        + column.getType()
+                                        + "; allowed primary key types are INT, LONG and VARCHAR "
+                                        + "(with at most " + ColumnType.MAX_PRIMARY_KEY_VARCHAR_LENGTH
+                                        + " characters)");
                     }
                     if (column.isNullable()) {
                         throw new IllegalArgumentException(
@@ -400,9 +422,20 @@ public final class TableSchematic {
                                 + "' must not have a default value");
             }
             if (nextIsPrimaryKey && !columnType.supportsPrimaryKey()) {
+                if (columnType.getKind() == ColumnType.Kind.VARCHAR) {
+                    throw new IllegalArgumentException(
+                            "Primary key column '" + columnName + "' in table '" + name
+                                    + "' uses " + columnType
+                                    + ", but VARCHAR primary keys may have at most "
+                                    + ColumnType.MAX_PRIMARY_KEY_VARCHAR_LENGTH
+                                    + " characters");
+                }
                 throw new IllegalArgumentException(
                         "Primary key column '" + columnName + "' in table '" + name
-                                + "' uses unsupported type " + columnType);
+                                + "' uses unsupported type " + columnType
+                                + "; allowed primary key types are INT, LONG and VARCHAR "
+                                + "(with at most " + ColumnType.MAX_PRIMARY_KEY_VARCHAR_LENGTH
+                                + " characters)");
             }
 
             ColumnDefinition definition = new ColumnDefinition(
