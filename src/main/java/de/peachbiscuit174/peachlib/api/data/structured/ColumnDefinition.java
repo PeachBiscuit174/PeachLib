@@ -21,7 +21,8 @@ import java.util.Objects;
  *     <li>An {@link #isAutoIncrement() auto increment} flag – only meaningful on
  *         {@link ColumnType.Kind#INT} or {@link ColumnType.Kind#LONG} primary keys.</li>
  *     <li>An optional default value that has already been converted via
- *         {@link ColumnType#convert(Object)} so it always matches the column's Java type.</li>
+ *         {@link ColumnType#convert(Object)} so it always matches the column's Java type.
+ *         Primary key columns are not permitted to carry a default value.</li>
  * </ul>
  *
  * <p>Equality is defined over <em>all</em> attributes except the converted default

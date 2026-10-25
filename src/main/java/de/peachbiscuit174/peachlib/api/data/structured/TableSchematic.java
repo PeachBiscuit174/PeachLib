@@ -394,6 +394,11 @@ public final class TableSchematic {
                         "Column '" + columnName
                                 + "' cannot combine autoIncrement() with defaultValue()");
             }
+            if (nextIsPrimaryKey && nextHasDefaultValue) {
+                throw new IllegalArgumentException(
+                        "Primary key column '" + columnName + "' in table '" + name
+                                + "' must not have a default value");
+            }
             if (nextIsPrimaryKey && !columnType.supportsPrimaryKey()) {
                 throw new IllegalArgumentException(
                         "Primary key column '" + columnName + "' in table '" + name
