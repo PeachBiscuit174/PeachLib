@@ -33,7 +33,11 @@ import java.util.regex.Pattern;
  * <ul>
  *     <li>The referenced column must exist.</li>
  *     <li>The supplied value must be convertible to the column's
- *         {@link ColumnType} (delegated to {@link ColumnType#convert(Object)}).</li>
+ *         {@link ColumnType} (delegated to {@link ColumnType#convert(Object)});
+ *         the conversion has to be lossless, so incompatible numeric types are
+ *         rejected as well, e.g. {@code 2.5} on a {@link ColumnType.Kind#LONG}
+ *         column raises an {@link IllegalArgumentException} instead of being
+ *         truncated or rounded.</li>
  *     <li>{@code gt}/{@code gte}/{@code lt}/{@code lte} are forbidden on
  *         {@link ColumnType.Kind#BOOLEAN} columns.</li>
  *     <li>{@code eq} on a {@code null} value is rejected – use {@link #isNull}
@@ -60,13 +64,28 @@ public sealed interface Filter permits Filter.All, Filter.Comparison, Filter.In,
     /**
      * Validates this filter against the supplied {@link TableSchematic}.
      *
+     * <p>
+     * The check is type-strict: every supplied value has to be convertible
+     * losslessly to the column type via {@link ColumnType#convert(Object)}.
+     * Values whose numeric type does not fit the column type are rejected as
+     * well: a fractional number such as {@code 2.5} supplied for a
+     * {@link ColumnType.Kind#LONG} or {@link ColumnType.Kind#INT} column
+     * raises an {@link IllegalArgumentException} instead of being truncated or
+     * rounded. The {@code in} filter validates every element of the supplied
+     * collection individually.
+     * </p>
+     *
      * @param schema the schema to validate against.
      * @throws IllegalArgumentException if the filter references an unknown
      *                                  column, a value cannot be converted to
-     *                                  the column's type, a comparison is
-     *                                  illegal for the column type or a
-     *                                  {@code null} value is supplied for
-     *                                  {@link Op#EQ} / {@link Op#NOT_EQ}.
+     *                                  the column's type (for example a
+     *                                  fractional value such as {@code 2.5} for
+     *                                  a {@link ColumnType.Kind#LONG} or
+     *                                  {@link ColumnType.Kind#INT} column), a
+     *                                  comparison is illegal for the column
+     *                                  type or a {@code null} value is
+     *                                  supplied for {@link Op#EQ} /
+     *                                  {@link Op#NOT_EQ}.
      */
     void validate(@NotNull TableSchematic schema);
 
