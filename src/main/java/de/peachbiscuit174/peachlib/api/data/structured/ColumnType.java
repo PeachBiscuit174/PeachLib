@@ -175,7 +175,7 @@ public final class ColumnType<T> {
      *         outside of {@link Integer#MIN_VALUE}..{@link Integer#MAX_VALUE} cannot be
      *         converted to {@code INT}.</li>
      *     <li>{@link Kind#BOOLEAN} accepts {@link Boolean} values only.</li>
-     *     <li>Text kinds accept any non-null value and return its string representation.</li>
+     *     <li>Text kinds accept {@link String} values only; other types are rejected rather than coerced.</li>
      * </ul>
      *
      * @param value the value to convert
@@ -322,8 +322,12 @@ public final class ColumnType<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> @NotNull T convertToText(@NotNull Object value) {
-        return cast(value.toString());
+    private static @NotNull String convertToText(@NotNull Object value) {
+        if (value instanceof String text) {
+            return text;
+        }
+        throw new IllegalArgumentException(
+                "Cannot convert " + value.getClass().getName() + " to text");
     }
 
     private static boolean isIntegral(double d) {
